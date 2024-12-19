@@ -1,0 +1,6 @@
+appdirs
+packaging
+py
+pyparsing
+pytest
+six
