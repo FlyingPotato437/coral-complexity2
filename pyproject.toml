@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coral_complexity_metrics"
+version = "0.0.1"
+authors = [
+  { name="Hannah White", email="ha.white@aims.gov.au" },
+]
+description = "A Python project for estimating coral complexity metrics"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = {file = "LICENSE"}

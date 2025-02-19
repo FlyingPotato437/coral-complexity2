@@ -10,5 +10,5 @@ It takes a directory containing `.ply` files as input, and outputs a `.csv` file
 
 ### Usage 
 
-`python calculate_shading.py --input_dir /path/to/folder/containing/plots`
+`python calculate_shading.py --input_plot /path/to/ply/file`
 

@@ -4,17 +4,15 @@ import os
 import time
 from tqdm import tqdm
 import multiprocessing as mp
-import csv
 from functools import partial
 import argparse
-import glob
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Calculate shading scores for plots.')
+        description='Calculate shading scores for a plot.')
     parser.add_argument(
-        '--input_dir', help='Input directory containing .ply files.')
+        '--input_plot', help='Input .ply file.')
     parser.add_argument('--cpu_limit', type=int,
                         help='CPU limit for parallel processing.', default=5)
     args = parser.parse_args()
@@ -193,13 +191,9 @@ def parallel_triangle_filtering(triangles, box_min, box_max, cpu_limit):
 
 def calculate_structure_shading(mesh, light_dir, point_of_interest=None, window_size=None, sample_size=1000000, cpu_limit=None):
     print("Preparing mesh data...")
-    with tqdm(total=3, desc="Mesh preparation") as pbar:
-        mesh.compute_normals(inplace=True)
-        pbar.update(1)
-        points = mesh.points
-        pbar.update(1)
-        faces = mesh.faces.reshape(-1, 4)[:, 1:4]
-        pbar.update(1)
+    mesh.compute_normals(inplace=True)
+    points = mesh.points
+    faces = mesh.faces.reshape(-1, 4)[:, 1:4]
     triangles = points[faces]
 
     if point_of_interest is not None and window_size is not None:
@@ -272,124 +266,48 @@ def calculate_structure_shading(mesh, light_dir, point_of_interest=None, window_
     return shaded_percentage
 
 
-def write_output(results, output_file):
-    with open(output_file, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Plot Name', 'Shaded Percentage',
-                        'Illuminated Percentage', 'Calculation Time (s)'])
-        for result in results:
-            writer.writerow([result['plot_name'],
-                             f"{result['shaded_percentage']:.2f}",
-                             f"{result['illuminated_percentage']:.2f}",
-                             f"{result['calculation_time']:.2f}"])
+def main():
+    parser, args = parse_args()
+    assert args.input_plot, (
+        'Please specify the input plot with the argument "--input_plot" ')
 
-
-def process_single_plot(plot_info, use_bounding_box, cpu_limit):
-    mesh_path, plot_name = plot_info
-
+    mesh_path = args.input_plot
     if not os.path.exists(mesh_path):
         print(f"3D model file not found: {mesh_path}")
-        return None
+        return
 
-    print(f"Processing plot: {plot_name}")
+    print(f"\nProcessing plot: {os.path.basename(mesh_path)}")
     print("Loading 3D mesh...")
     start_time = time.time()
     try:
         mesh = pv.read(mesh_path)
     except Exception as e:
         print(f"Failed to load 3D model: {e}")
-        return None
+        return
 
     print(f"Mesh loaded in {time.time() - start_time:.2f} seconds")
     print(f"Number of points: {mesh.n_points}")
     print(f"Number of faces: {mesh.n_cells}")
 
-    light_dir = np.array([0, 0, -1])  # Negative z-direction for top-down light
+    # Negative z-direction for top-down light
+    light_dir = np.array([0, 0, -1])
 
-    if use_bounding_box:
-        point_of_interest, window_size = interactive_bounding_box(mesh)
-        print(f"Selected point of interest: {point_of_interest}")
-        print(f"Selected window size: {window_size}")
-    else:
-        point_of_interest = None
-        window_size = None
+    point_of_interest, window_size = None, None
 
     print("Calculating shading percentage based on coral structure...")
     calculation_start_time = time.time()
     shaded_percentage = calculate_structure_shading(
-        mesh, light_dir, point_of_interest, window_size, cpu_limit=cpu_limit)
+        mesh, light_dir, point_of_interest, window_size, cpu_limit=args.cpu_limit)
     calculation_time = time.time() - calculation_start_time
 
-    print(f'Shaded Percentage: {shaded_percentage:.2f}%')
-    print(f'Illuminated Percentage: {100 - shaded_percentage:.2f}%')
-    print(f'Calculation Time: {calculation_time:.2f} seconds')
-
     return {
-        'plot_name': plot_name,
-        'shaded_percentage': shaded_percentage,
-        'illuminated_percentage': 100 - shaded_percentage,
-        'calculation_time': calculation_time
+        'plot_name': os.path.basename(mesh_path),
+        'shaded_percentage': f"{shaded_percentage:.2f}%",
+        'illuminated_percentage': f"{100 - shaded_percentage:.2f}%",
+        'calculation_time': f"{calculation_time:.2f} seconds"
     }
 
 
-def main():
-    parser, args = parse_args()
-    assert args.input_dir, (
-        'Please specify the input plot folder with the argument "--input_dir" ')
-
-    plots = glob.glob(os.path.join(args.input_dir, "*.ply"))
-
-    results = []
-    for mesh_path in plots:
-        if not os.path.exists(mesh_path):
-            print(f"3D model file not found: {mesh_path}")
-            continue
-
-        print(f"\nProcessing plot: {os.path.basename(mesh_path)}")
-        print("Loading 3D mesh...")
-        start_time = time.time()
-        try:
-            mesh = pv.read(mesh_path)
-        except Exception as e:
-            print(f"Failed to load 3D model: {e}")
-            continue
-
-        print(f"Mesh loaded in {time.time() - start_time:.2f} seconds")
-        print(f"Number of points: {mesh.n_points}")
-        print(f"Number of faces: {mesh.n_cells}")
-
-        # Negative z-direction for top-down light
-        light_dir = np.array([0, 0, -1])
-
-        point_of_interest, window_size = None, None
-
-        print("Calculating shading percentage based on coral structure...")
-        calculation_start_time = time.time()
-        shaded_percentage = calculate_structure_shading(
-            mesh, light_dir, point_of_interest, window_size, cpu_limit=args.cpu_limit)
-        calculation_time = time.time() - calculation_start_time
-
-        print(f'Plot name: {os.path.basename(mesh_path)}')
-        print(f'Shaded Percentage: {shaded_percentage:.2f}%')
-        print(f'Illuminated Percentage: {100 - shaded_percentage:.2f}%')
-        print(f'Calculation Time: {calculation_time:.2f} seconds')
-        print()
-
-        results.append({
-            'plot_name': os.path.basename(mesh_path),
-            'shaded_percentage': shaded_percentage,
-            'illuminated_percentage': 100 - shaded_percentage,
-            'calculation_time': calculation_time
-        })
-
-        print("\n" + "="*50 + "\n")
-
-    output_file = 'shading_results.csv'
-    write_output(results, output_file)
-    print(f"Results written to {output_file}")
-
-    print("All plots processed successfully.")
-
-
 if __name__ == "__main__":
-    main()
+    result = main()
+    print(result)

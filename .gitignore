@@ -1,3 +1,11 @@
-*shading_results.csv
-*__pycache__/
+*__pycache__/# general things to ignore
+build/
+dist/
+*.egg-info/
+*.egg
+*.py[cod]
+__pycache__/
+*.so
+*~
+*test.ipynb
 *.csv
