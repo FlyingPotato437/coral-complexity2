@@ -16,9 +16,21 @@ pip install .
 ```python
 from coral_complexity_metrics import Shading
 
-sd = Shading()
-sd.load_3d_model("path/to/.ply/file")
+sh = Shading()
+sh.load_3d_model("path/to/.ply/file")
 
 # calculate shading metric
-sd.calculate()
+sh.calculate()
+```
+
+### Geometric Measures
+
+```python
+from coral_complexity_metrics import GeometricMeasures
+
+gm = GeometricMeasures()
+gm.load_3d_model("path/to/.ply/file")
+
+# calculate geometric measures
+gm.calculate()
 ```
