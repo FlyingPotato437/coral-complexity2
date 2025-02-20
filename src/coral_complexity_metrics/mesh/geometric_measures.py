@@ -6,7 +6,7 @@ class GeometricMeasures:
         self.mesh_file = None
         self.mesh = None
 
-    def load_3d_model(self, file):
+    def load_mesh(self, file):
         self.mesh_file = file  # Assigns file to class variable
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(file)
@@ -55,13 +55,13 @@ class GeometricMeasures:
         SSF = (ASR / mesh_sa)
 
         return {
-            "File_Path": str(self.mesh_file),
-            "Vol": mesh_volume,
-            "CVH_Vol": cvh_volume,
+            "mesh_file": str(self.mesh_file),
+            "volume": mesh_volume,
+            "CVH_volume": cvh_volume,
             "ASR": ASR,
-            "PrOcc": PrOcc,
-            "Surface_Area": mesh_sa,
+            "proportion_occupied": PrOcc,
+            "surface_area": mesh_sa,
             "SSF": SSF,
-            "Diameter": width,
-            "Height": height
+            "diameter": width,
+            "height": height
         }

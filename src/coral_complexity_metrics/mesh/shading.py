@@ -1,5 +1,4 @@
 import os
-import time
 import numpy as np
 import pyvista as pv
 from tqdm import tqdm
@@ -14,21 +13,19 @@ class Shading:
         self.cpu_limit = None
         self.mesh = None
 
-    def load_3d_model(self, plot):
+    def load_mesh(self, plot):
         self.plot = plot
         if not os.path.exists(plot):
             print(f"3D model file not found: {plot}")
             return
 
         print("Loading 3D mesh...")
-        start_time = time.time()
         try:
             self.mesh = pv.read(plot)
         except Exception as e:
             print(f"Failed to load 3D model: {e}")
             return
 
-        print(f"Mesh loaded in {time.time() - start_time:.2f} seconds")
         print(f"Number of points: {self.mesh.n_points}")
         print(f"Number of faces: {self.mesh.n_cells}")
 
@@ -167,7 +164,6 @@ class Shading:
             print("No 3D model loaded. Please load a 3D model first.")
             return
 
-        calculation_start_time = time.time()
         print("Calculating shading percentage based on coral structure...")
 
         print("Preparing mesh data...")
@@ -211,13 +207,11 @@ class Shading:
             indices = np.arange(len(triangles))
 
         print("Building BVH...")
-        build_start = time.time()
         with tqdm(total=len(indices), desc="Building BVH") as pbar:
             def bvh_progress_callback(progress):
                 pbar.n = progress
                 pbar.refresh()
             bvh_root = self.build_bvh(triangles, indices, 0, len(indices))
-        print(f"BVH built in {time.time() - build_start:.2f} seconds.")
 
         if self.cpu_limit is None:
             num_processes = mp.cpu_count()
@@ -245,11 +239,8 @@ class Shading:
         shadowed = np.concatenate(results)
         shaded_percentage = np.mean(shadowed) * 100
 
-        calculation_time = time.time() - calculation_start_time
-
         return {
-            'plot_name': os.path.basename(self.plot),
+            'mesh_file': os.path.basename(self.plot),
             'shaded_percentage': f"{shaded_percentage:.2f}%",
-            'illuminated_percentage': f"{100 - shaded_percentage:.2f}%",
-            'calculation_time': f"{calculation_time:.2f} seconds"
+            'illuminated_percentage': f"{100 - shaded_percentage:.2f}%"
         }
