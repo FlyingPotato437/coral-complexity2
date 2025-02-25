@@ -8,6 +8,7 @@ def read_obj(file, verbose, order):
     is_zero_vn = False
     contains_normal_vertex = False
     contains_texture_vertex = False
+    print("Reading mesh file: " + file)
     file = open(file, "r")
     for line in file:
         instructions = line.rstrip().split()
