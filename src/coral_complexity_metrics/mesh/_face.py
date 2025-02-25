@@ -1,6 +1,6 @@
 import math
-from .vertex import Vertex
-# import pdb
+from ._vertex import Vertex
+import pdb
 
 
 class Face(object):

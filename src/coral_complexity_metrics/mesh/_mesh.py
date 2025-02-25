@@ -1,7 +1,7 @@
-from .vertex import Vertex
-from .face import Face
-from .metric import Metric
-from .helpers import get_z_value, mean, sd
+from ._vertex import Vertex
+from ._face import Face
+from ._metric import Metric
+from ._helpers import get_z_value, mean, sd
 import pdb
 
 
@@ -13,7 +13,6 @@ class Mesh(object):
 
     def calculate_metrics(self, quadrats):
         metrics = list()
-        print("Calculating for mesh: " + str(self.name))
         for quadrat in quadrats:
             metric = Metric()
             quadrat_vertices = list()

@@ -1,5 +1,5 @@
 import math
-from .vertex import Vertex
+from ._vertex import Vertex
 
 
 def is_min(x, y):
@@ -23,7 +23,8 @@ def sd(values, sample):
     differences = [x - values_mean for x in values]
     square_differences = [d ** 2 for d in differences]
     sum_of_squares = sum(square_differences)
-    variance = sum_of_squares / (len(values) - 1) if sample is True else sum_of_squares / len(values)
+    variance = sum_of_squares / \
+        (len(values) - 1) if sample is True else sum_of_squares / len(values)
     return math.sqrt(variance)
 
 

@@ -4,7 +4,7 @@ import pyvista as pv
 from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
-from ._utils import AABB, BVHNode
+from ._shading_utils import AABB, BVHNode
 
 
 class Shading:

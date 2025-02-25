@@ -1,4 +1,4 @@
-from .vertex import Vertex
+from ._vertex import Vertex
 
 
 class DimensionOrder(object):

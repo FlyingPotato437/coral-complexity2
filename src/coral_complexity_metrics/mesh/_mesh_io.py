@@ -1,5 +1,5 @@
-from .mesh import Mesh
-from .face import Face
+from ._mesh import Mesh
+from ._face import Face
 
 
 def read_obj(file, verbose, order):
@@ -8,7 +8,7 @@ def read_obj(file, verbose, order):
     is_zero_vn = False
     contains_normal_vertex = False
     contains_texture_vertex = False
-    print("Reading in mesh: " + str(file.name))
+    file = open(file, "r")
     for line in file:
         instructions = line.rstrip().split()
         if len(instructions) > 0:

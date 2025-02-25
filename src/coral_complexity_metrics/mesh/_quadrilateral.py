@@ -1,7 +1,7 @@
 import math
-from .vertex import Vertex
+from ._vertex import Vertex
 import sys
-from .helpers import get_midpoint_of_edge
+from ._helpers import get_midpoint_of_edge
 
 
 class Quadrilateral(object):
@@ -13,8 +13,8 @@ class Quadrilateral(object):
         #                  [vertex_3.x, vertex_3.y],
         #                  [vertex_4.x, vertex_4.y]])
         self.centroid = get_midpoint_of_edge(
-                            get_midpoint_of_edge(vertex_1, vertex_3),
-                            get_midpoint_of_edge(vertex_2, vertex_4))
+            get_midpoint_of_edge(vertex_1, vertex_3),
+            get_midpoint_of_edge(vertex_2, vertex_4))
 
     def contains(self, vertex):
         if self._within(vertex) is True:
@@ -25,9 +25,9 @@ class Quadrilateral(object):
             return False
 
     def _within(self, vertex):
-    #     inside_x = vertex.x > self.vertices[0].x and vertex.x < self.vertices[1].x
-    #     inside_y = vertex.y > self.vertices[0].y and vertex.y < self.vertices[3].y
-    #     inside = inside_x and inside_y
+        #     inside_x = vertex.x > self.vertices[0].x and vertex.x < self.vertices[1].x
+        #     inside_y = vertex.y > self.vertices[0].y and vertex.y < self.vertices[3].y
+        #     inside = inside_x and inside_y
         xl = [v.x for v in self.vertices]
         yl = [v.y for v in self.vertices]
         if vertex.x < min(xl) or vertex.x > max(xl) or vertex.y < min(yl) or vertex.y > max(yl):

@@ -1,6 +1,6 @@
-from .vertex import Vertex
-from .quadrat import Quadrat
-from .helpers import get_midpoint_of_edge
+from ._vertex import Vertex
+from ._quadrat import Quadrat
+from ._helpers import get_midpoint_of_edge
 
 
 class QuadratBuilder(object):
