@@ -6,7 +6,7 @@ This package is currently under development.
 ## Installation
 
 ```
-pip install .
+pip install coral_complexity_metrics
 ```
 
 ## Usage
@@ -31,9 +31,10 @@ The `Shading` class takes in a mesh `.ply` file as input and returns shaded perc
 }
 ```
 
-### Geometric Measures
+### Colony Geometric Measures
 
-The `GeometricMeasures` class takes a mesh `.ply` as input and returns the following geometric calculations:
+The `GeometricMeasures` class computes geometric measures of individual coral colonies. It takes a mesh `.ply` as input and returns the following geometric calculations:
+
 * `File_Path` : File path to the original input mesh. Identifies each coral in the file
 * `Vol`: Volume of first mesh (the coral)
 * `CVH_Vol`: Volume of minimum bounding convex hull enclosing original mesh
@@ -124,3 +125,15 @@ This class uses code forked from [this repository.](https://github.com/shawes/me
 ]
 
 ```
+
+---
+**NOTE:** You can convert a `.ply` file to a `.obj` file using the following code:
+
+```python
+import meshio
+
+mesh = meshio.read("path/to/ply/file")
+mesh.write("output.obj")
+```
+
+---
