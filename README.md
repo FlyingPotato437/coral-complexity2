@@ -94,7 +94,7 @@ This class uses code forked from [this repository.](https://github.com/shawes/me
 ```python
 >>> from coral_complexity_metrics import QuadratMetrics
 
->>> qm = QudratMetrics(
+>>> qm = QuadratMetrics(
     dim="XYZ", # the dimensions of the input files WLH (width-length-height)
     size=1 # the size of a quadrat (standard is metres, but depends on the mesh units)
     )
