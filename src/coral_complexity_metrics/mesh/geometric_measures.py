@@ -35,7 +35,11 @@ class GeometricMeasures:
         dict = (self.mesh.get_geometric_measures())
 
         # Assigns mesh volume to variable mesh_volume
-        mesh_volume = dict['mesh_volume']
+        try:
+            mesh_volume = dict['mesh_volume']
+        except KeyError:
+            print("Error: Mesh volume not found. Please make sure you are using a valid mesh file containing a single coral colony.")
+            return
 
         boundingbox = self.mesh.current_mesh().bounding_box()
         width = boundingbox.dim_x()
