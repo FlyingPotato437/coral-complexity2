@@ -8,7 +8,18 @@ import meshio
 
 
 class QuadratMetrics:
+    """
+    Class for calculating metrics of quadrats within a mesh.
+    """
+
     def __init__(self, dim, size):
+        """
+        Initialize the QuadratMetrics class with dimension and size.
+
+        Parameters:
+        dim (int): Dimension order for the mesh.
+        size (float): Size of the quadrats.
+        """
         self.dim = dim
         self.size = size
         self.mesh_file = None
@@ -16,13 +27,13 @@ class QuadratMetrics:
 
     def ply_to_obj(self, ply_file):
         """
-        Converts a .ply file to a .obj file and saves it in the same directory
+        Converts a .ply file to a .obj file and saves it in the same directory.
 
-        Args:
-            ply_file: Path to the .ply file to be converted
+        Parameters:
+        ply_file (str): Path to the .ply file to be converted.
 
         Returns:
-            Returns the path to the saved .obj file
+        str: Path to the saved .obj file.
         """
         print("Converting .ply file to .obj file...")
         mesh = meshio.read(ply_file)
@@ -32,14 +43,13 @@ class QuadratMetrics:
 
     def load_mesh(self, file):
         """
-        Reads in mesh file in .obj format and stores them in a
-        corresponding mesh objects
+        Reads in a mesh file in .obj format and stores it in a corresponding mesh object.
 
-        Args:
-            file: List of command line arguments
+        Parameters:
+        file (str): Path to the 3D model file.
 
         Returns:
-            A mesh object, essentially a collection of faces
+        None
         """
         if file.endswith(".ply"):
             file = self.ply_to_obj(file)
@@ -48,8 +58,12 @@ class QuadratMetrics:
         print("Mesh loaded")
 
     def _calculate_bounding_box(self):
-        """Calculates the bounding box from the extreme vertices in
-        each mesh"""
+        """
+        Calculates the bounding box from the extreme vertices in the mesh.
+
+        Returns:
+        None
+        """
         print("Calculating the bounding box...")
 
         max_x = sys.maxsize * -1
@@ -72,6 +86,12 @@ class QuadratMetrics:
                                           Vertex(max_x, max_y, 0), Vertex(min_x, max_y, 0))
 
     def _fit_quadrats_to_meshes(self):
+        """
+        Generates the quadrats inside the bounding box.
+
+        Returns:
+        None
+        """
         print("Generating the quadrats inside the bounding box...")
 
         self.quadrats = QuadratBuilder().build(self.bounding_box, self.size)
@@ -79,11 +99,23 @@ class QuadratMetrics:
         print("There are this many quadrats: " + str(len(self.quadrats)))
 
     def _calculate_metrics_of_quadrats(self):
+        """
+        Calculates metrics for each quadrat.
+
+        Returns:
+        None
+        """
         print("Calculating metrics...")
 
         self.metrics = self.mesh.calculate_metrics(self.quadrats)
 
     def calculate(self):
+        """
+        Calculates the bounding box, fits quadrats to meshes, and calculates metrics for each quadrat.
+
+        Returns:
+        list: List of dictionaries containing metrics for each quadrat.
+        """
         self._calculate_bounding_box()
         self._fit_quadrats_to_meshes()
         self._calculate_metrics_of_quadrats()

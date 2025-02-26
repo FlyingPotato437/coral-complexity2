@@ -8,12 +8,23 @@ from ._shading_utils import AABB, BVHNode
 
 
 class Shading:
+    """
+    A class to calculate shading percentage based on the coral structure.
+    """
+
     def __init__(self):
+        """Initialize the Shading class with default values."""
         self.plot = None
         self.cpu_limit = None
         self.mesh = None
 
     def load_mesh(self, plot):
+        """
+        Load a 3D mesh from the specified file.
+
+        Parameters:
+        plot (str): Path to the 3D model file.
+        """
         self.plot = plot
         if not os.path.exists(plot):
             print(f"3D model file not found: {plot}")
@@ -30,6 +41,20 @@ class Shading:
         print(f"Number of faces: {self.mesh.n_cells}")
 
     def build_bvh(self, triangles, indices, start, end, depth=0, max_depth=20):
+        """
+        Build a Bounding Volume Hierarchy (BVH) for the given triangles.
+
+        Parameters:
+        triangles (np.ndarray): Array of triangles.
+        indices (np.ndarray): Array of triangle indices.
+        start (int): Start index for the BVH node.
+        end (int): End index for the BVH node.
+        depth (int): Current depth of the BVH node.
+        max_depth (int): Maximum depth of the BVH tree.
+
+        Returns:
+        BVHNode: The root node of the BVH tree.
+        """
         if start >= end or depth > max_depth:
             return None
 
@@ -55,6 +80,19 @@ class Shading:
         return node
 
     def ray_triangle_intersect(self, ray_origin, ray_direction, v0, v1, v2):
+        """
+        Check if a ray intersects with a triangle.
+
+        Parameters:
+        ray_origin (np.ndarray): Origin of the ray.
+        ray_direction (np.ndarray): Direction of the ray.
+        v0 (np.ndarray): First vertex of the triangle.
+        v1 (np.ndarray): Second vertex of the triangle.
+        v2 (np.ndarray): Third vertex of the triangle.
+
+        Returns:
+        bool: True if the ray intersects the triangle, False otherwise.
+        """
         epsilon = 1e-6
         edge1 = v1 - v0
         edge2 = v2 - v0
@@ -75,6 +113,19 @@ class Shading:
         return t > epsilon
 
     def intersect_bvh(self, node, ray_origin, ray_direction, triangles, indices):
+        """
+        Check if a ray intersects with any triangle in the BVH.
+
+        Parameters:
+        node (BVHNode): The current BVH node.
+        ray_origin (np.ndarray): Origin of the ray.
+        ray_direction (np.ndarray): Direction of the ray.
+        triangles (np.ndarray): Array of triangles.
+        indices (np.ndarray): Array of triangle indices.
+
+        Returns:
+        bool: True if the ray intersects any triangle, False otherwise.
+        """
         if node is None or not node.aabb.intersect(ray_origin, ray_direction):
             return False
 
@@ -90,6 +141,15 @@ class Shading:
                                ray_direction, triangles, indices)
 
     def process_chunk(self, args):
+        """
+        Process a chunk of points to determine if they are shadowed.
+
+        Parameters:
+        args (tuple): A tuple containing the chunk of points, BVH root, triangles, indices, and light direction.
+
+        Returns:
+        np.ndarray: Array indicating which points are shadowed.
+        """
         chunk, bvh_root, triangles, indices, light_dir = args
         shadowed = np.zeros(len(chunk), dtype=bool)
         for i, point in enumerate(chunk):
@@ -98,9 +158,33 @@ class Shading:
         return shadowed
 
     def point_in_box(self, point, box_min, box_max):
+        """
+        Check if a point is inside a bounding box.
+
+        Parameters:
+        point (np.ndarray): The point to check.
+        box_min (np.ndarray): Minimum coordinates of the bounding box.
+        box_max (np.ndarray): Maximum coordinates of the bounding box.
+
+        Returns:
+        bool: True if the point is inside the bounding box, False otherwise.
+        """
         return np.all(point >= box_min) and np.all(point <= box_max)
 
     def triangle_intersects_box(self, v0, v1, v2, box_min, box_max):
+        """
+        Check if a triangle intersects with a bounding box.
+
+        Parameters:
+        v0 (np.ndarray): First vertex of the triangle.
+        v1 (np.ndarray): Second vertex of the triangle.
+        v2 (np.ndarray): Third vertex of the triangle.
+        box_min (np.ndarray): Minimum coordinates of the bounding box.
+        box_max (np.ndarray): Maximum coordinates of the bounding box.
+
+        Returns:
+        bool: True if the triangle intersects the bounding box, False otherwise.
+        """
         # Check if any vertex is inside the box
         if any(self.point_in_box(v, box_min, box_max) for v in [v0, v1, v2]):
             return True
@@ -134,9 +218,32 @@ class Shading:
         return False
 
     def triangle_intersects_box_wrapper(triangle, box_min, box_max):
+        """
+        Wrapper function to check if a triangle intersects with a bounding box.
+
+        Parameters:
+        triangle (np.ndarray): The triangle to check.
+        box_min (np.ndarray): Minimum coordinates of the bounding box.
+        box_max (np.ndarray): Maximum coordinates of the bounding box.
+
+        Returns:
+        bool: True if the triangle intersects the bounding box, False otherwise.
+        """
         return self.triangle_intersects_box(triangle[0], triangle[1], triangle[2], box_min, box_max)
 
     def parallel_triangle_filtering(self, triangles, box_min, box_max, cpu_limit):
+        """
+        Filter triangles in parallel to determine which ones intersect with a bounding box.
+
+        Parameters:
+        triangles (np.ndarray): Array of triangles.
+        box_min (np.ndarray): Minimum coordinates of the bounding box.
+        box_max (np.ndarray): Maximum coordinates of the bounding box.
+        cpu_limit (int): Maximum number of CPU cores to use.
+
+        Returns:
+        np.ndarray: Indices of triangles that intersect with the bounding box.
+        """
         num_processes = min(
             mp.cpu_count(), cpu_limit) if cpu_limit else mp.cpu_count()
         # Adjust chunk size for better load balancing
@@ -159,7 +266,19 @@ class Shading:
         return np.where(filtered_indices)[0]
 
     def calculate(self, light_dir=np.array([0, 0, -1]), point_of_interest=None, window_size=None, sample_size=1000000, cpu_limit=None):
+        """
+        Calculate the shading percentage based on the coral structure.
 
+        Parameters:
+        light_dir (np.ndarray): Direction of the light source.
+        point_of_interest (np.ndarray): Point of interest for localized calculation.
+        window_size (np.ndarray): Size of the window around the point of interest.
+        sample_size (int): Number of points to sample for the calculation.
+        cpu_limit (int): Maximum number of CPU cores to use.
+
+        Returns:
+        dict: Dictionary containing the mesh file name, shaded percentage, and illuminated percentage.
+        """
         if self.mesh is None:
             print("No 3D model loaded. Please load a 3D model first.")
             return

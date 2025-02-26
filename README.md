@@ -45,8 +45,8 @@ The `GeometricMeasures` class computes geometric measures of individual coral co
 * `Height`: Colony height (length along Z-axis of bounding box) 
 
 Please also note:
-* Transformations must be carried out by the user to get to square and cubic cm
-* Models must have been scaled in the software you used to create them for this code to work
+* *Transformations must be carried out by the user to get to square and cubic cm*
+* *Models must have been scaled in the software you used to create them for this code to work*
 
 This class uses code originally written by Eoghan Aston, which was published [here.](https://github.com/E-Aston/CoralGeometry)
 
@@ -91,7 +91,7 @@ The `QuadratMetrics` class takes an `.obj` or `.ply` mesh file, dimensions of th
 
 This class uses code forked from [this repository.](https://github.com/shawes/mesh3d-python)
 
-**NOTE:** If a `.ply` file is used it is first converted to an `.obj` file and saved in the same directory.
+**NOTE:** *If a `.ply` file is used it is first converted to an `.obj` file and saved in the same directory.*
 
 ```python
 >>> from coral_complexity_metrics import QuadratMetrics

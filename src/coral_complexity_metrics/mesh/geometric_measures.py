@@ -2,11 +2,22 @@ import pymeshlab
 
 
 class GeometricMeasures:
+    """
+    Class to calculate geometric measures of a coral colony 3D mesh.
+    """
+
     def __init__(self):
+        """Initialize the GeometricMeasures class with default values."""
         self.mesh_file = None
         self.mesh = None
 
     def load_mesh(self, file):
+        """
+        Load a 3D mesh from the specified file.
+
+        Parameters:
+        file (str): Path to the 3D model file.
+        """
         self.mesh_file = file  # Assigns file to class variable
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(file)
@@ -16,6 +27,12 @@ class GeometricMeasures:
         print("Mesh loaded")
 
     def calculate(self):
+        """
+        Calculate geometric measures of the mesh.
+
+        Returns:
+        dict: Dictionary containing various geometric measures of the mesh.
+        """
         # Compute measures of original mesh
         dict = (self.mesh.get_geometric_measures())
         mesh_sa = dict['surface_area']  # Assigns variable name
