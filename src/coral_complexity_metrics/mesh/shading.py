@@ -359,7 +359,7 @@ class Shading:
         shaded_percentage = np.mean(shadowed) * 100
 
         return {
-            'mesh_file': os.path.basename(self.plot),
+            'mesh_file': self.plot,
             'shaded_percentage': f"{shaded_percentage:.2f}%",
             'illuminated_percentage': f"{100 - shaded_percentage:.2f}%"
         }
