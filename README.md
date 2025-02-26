@@ -12,13 +12,13 @@ pip install coral_complexity_metrics
 
 ### Shading
 
-The `Shading` class takes in a mesh `.ply` or `.obj` file as input and returns shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fgithub.com%2FFlyingPotato437%2Fsrikanth_coral_shading_script&data=05%7C02%7Cha.white%40aims.gov.au%7C5f6c78dc6a764492c49108dd51770c90%7Ce054a73b40dc4ae39fce60c537aa6fac%7C0%7C0%7C638756293945567609%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=w%2Bqu7GIhWA3qaDQK63UYCVqsK0Vu6mpwbgqOwgTigH4%3D&reserved=0)
+The `Shading` class takes in a mesh `.ply` or `.obj` file as input and returns shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://github.com/FlyingPotato437/srikanth_coral_shading_script)
 
 ```python
 >>> from coral_complexity_metrics import Shading
 
 >>> sh = Shading()
->>> sh.load_mesh("path/to/.ply/file")
+>>> sh.load_mesh("path/to/mesh/file")
 
 >>> # calculate shading metric
 >>> sh.calculate()
@@ -54,7 +54,7 @@ This class uses code originally written by Eoghan Aston, which was published [he
 >>> from coral_complexity_metrics import GeometricMeasures
 
 >>> gm = GeometricMeasures()
->>> gm.load_mesh("path/to/.ply/file")
+>>> gm.load_mesh("path/to/mesh/file")
 
 >>> # calculate geometric measures
 >>> gm.calculate()
@@ -101,7 +101,7 @@ This class uses code forked from [this repository.](https://github.com/shawes/me
     size=1 # the size of a quadrat (standard is metres, but depends on the mesh units)
     )
 
->>> qm.load_mesh("path/to/.obj/file")
+>>> qm.load_mesh("path/to/mesh/file")
 
 >>> # calculate quadrat metrics
 >>> qm.calculate()
@@ -126,3 +126,19 @@ This class uses code forked from [this repository.](https://github.com/shawes/me
 ]
 
 ```
+
+## Contact
+
+Hannah White (Data Scientist) - ha.white@aims.gov.au
+
+Renata Ferrari Legorreta (Ecological Risk Modeller) - r.ferrarilegorreta@aims.gov.au 
+
+## Acknowledgements
+
+* Srikanth Samy: https://github.com/FlyingPotato437/srikanth_coral_shading_script
+* Eoghan Aston: https://github.com/E-Aston/CoralGeometry
+* https://github.com/shawes/mesh3d-python
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
