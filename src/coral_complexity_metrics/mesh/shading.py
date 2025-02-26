@@ -14,25 +14,25 @@ class Shading:
 
     def __init__(self):
         """Initialize the Shading class with default values."""
-        self.plot = None
+        self.mesh_file = None
         self.cpu_limit = None
         self.mesh = None
 
-    def load_mesh(self, plot):
+    def load_mesh(self, mesh_file):
         """
         Load a 3D mesh from the specified file.
 
         Parameters:
         plot (str): Path to the 3D model file.
         """
-        self.plot = plot
-        if not os.path.exists(plot):
-            print(f"3D model file not found: {plot}")
+        self.mesh_file = mesh_file
+        if not os.path.exists(mesh_file):
+            print(f"3D model file not found: {mesh_file}")
             return
 
         print("Loading 3D mesh...")
         try:
-            self.mesh = pv.read(plot)
+            self.mesh = pv.read(mesh_file)
         except Exception as e:
             print(f"Failed to load 3D model: {e}")
             return
@@ -359,7 +359,7 @@ class Shading:
         shaded_percentage = np.mean(shadowed) * 100
 
         return {
-            'mesh_file': self.plot,
+            'mesh_file': self.mesh_file,
             'shaded_percentage': f"{shaded_percentage:.2f}%",
             'illuminated_percentage': f"{100 - shaded_percentage:.2f}%"
         }

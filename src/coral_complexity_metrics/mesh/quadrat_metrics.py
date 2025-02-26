@@ -4,6 +4,7 @@ from ._quadrilateral import Quadrilateral
 from ._vertex import Vertex
 from ._mesh_io import read_obj
 import sys
+import os
 import meshio
 
 
@@ -51,10 +52,14 @@ class QuadratMetrics:
         Returns:
         None
         """
+        self.mesh_file = file
+        if not os.path.exists(file):
+            print(f"3D model file not found: {file}")
+            return
+
         if file.endswith(".ply"):
-            file = self.ply_to_obj(file)
-        self.mesh_file = file  # Assigns file to class variable
-        self.mesh = read_obj(file, True, DimensionOrder(self.dim))
+            self.mesh_file = self.ply_to_obj(file)
+        self.mesh = read_obj(self.mesh_file, True, DimensionOrder(self.dim))
         print("Mesh loaded")
 
     def _calculate_bounding_box(self):

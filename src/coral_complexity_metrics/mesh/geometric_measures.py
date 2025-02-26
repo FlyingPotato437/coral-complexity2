@@ -1,3 +1,4 @@
+import os
 import pymeshlab
 
 
@@ -19,6 +20,10 @@ class GeometricMeasures:
         file (str): Path to the 3D model file.
         """
         self.mesh_file = file  # Assigns file to class variable
+        if not os.path.exists(file):
+            print(f"3D model file not found: {file}")
+            return
+
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(file)
 
