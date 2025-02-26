@@ -4,6 +4,7 @@ from ._quadrilateral import Quadrilateral
 from ._vertex import Vertex
 from ._mesh_io import read_obj
 import sys
+import meshio
 
 
 class QuadratMetrics:
@@ -12,6 +13,22 @@ class QuadratMetrics:
         self.size = size
         self.mesh_file = None
         self.mesh = None
+
+    def ply_to_obj(self, ply_file):
+        """
+        Converts a .ply file to a .obj file and saves it in the same directory
+
+        Args:
+            ply_file: Path to the .ply file to be converted
+
+        Returns:
+            Returns the path to the saved .obj file
+        """
+        print("Converting .ply file to .obj file...")
+        mesh = meshio.read(ply_file)
+        obj_file = ply_file.replace(".ply", ".obj")
+        mesh.write(obj_file)
+        return obj_file
 
     def load_mesh(self, file):
         """
@@ -24,6 +41,8 @@ class QuadratMetrics:
         Returns:
             A mesh object, essentially a collection of faces
         """
+        if file.endswith(".ply"):
+            file = self.ply_to_obj(file)
         self.mesh_file = file  # Assigns file to class variable
         self.mesh = read_obj(file, True, DimensionOrder(self.dim))
         print("Mesh loaded")

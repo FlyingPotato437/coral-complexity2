@@ -1,7 +1,6 @@
 # coral-complexity-metrics
 
-[!CAUTION]
-This package is currently under development.
+**coral-complexity-measures** is a Python package for extracting 3D complexity metrics from models (in `.ply` or `.obj` format) of coral reefs.
 
 ## Installation
 
@@ -13,7 +12,7 @@ pip install coral_complexity_metrics
 
 ### Shading
 
-The `Shading` class takes in a mesh `.ply` file as input and returns shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fgithub.com%2FFlyingPotato437%2Fsrikanth_coral_shading_script&data=05%7C02%7Cha.white%40aims.gov.au%7C5f6c78dc6a764492c49108dd51770c90%7Ce054a73b40dc4ae39fce60c537aa6fac%7C0%7C0%7C638756293945567609%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=w%2Bqu7GIhWA3qaDQK63UYCVqsK0Vu6mpwbgqOwgTigH4%3D&reserved=0)
+The `Shading` class takes in a mesh `.ply` or `.obj` file as input and returns shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fgithub.com%2FFlyingPotato437%2Fsrikanth_coral_shading_script&data=05%7C02%7Cha.white%40aims.gov.au%7C5f6c78dc6a764492c49108dd51770c90%7Ce054a73b40dc4ae39fce60c537aa6fac%7C0%7C0%7C638756293945567609%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=w%2Bqu7GIhWA3qaDQK63UYCVqsK0Vu6mpwbgqOwgTigH4%3D&reserved=0)
 
 ```python
 >>> from coral_complexity_metrics import Shading
@@ -33,7 +32,7 @@ The `Shading` class takes in a mesh `.ply` file as input and returns shaded perc
 
 ### Colony Geometric Measures
 
-The `GeometricMeasures` class computes geometric measures of individual coral colonies. It takes a mesh `.ply` as input and returns the following geometric calculations:
+The `GeometricMeasures` class computes geometric measures of individual coral colonies. It takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
 
 * `File_Path` : File path to the original input mesh. Identifies each coral in the file
 * `Vol`: Volume of first mesh (the coral)
@@ -75,7 +74,7 @@ This class uses code originally written by Eoghan Aston, which was published [he
 
 ### Quadrat Metrics 
 
-The `QuadratMetrics` class takes an `.obj` mesh file, dimensions of the input file, and size of quadrats as input. It outputs a dictionary per quadrat containing the following metrics:
+The `QuadratMetrics` class takes an `.obj` or `.ply` mesh file, dimensions of the input file, and size of quadrats as input. It outputs a dictionary per quadrat containing the following metrics:
 * `quadrat_size_m`: The size of the fitted quadrats
 * `quadrat_rel_x`: The relative x coordinates of the quadrat
 * `quadrat_rel_y`: The relative y coordinates of the quadrat
@@ -91,6 +90,8 @@ The `QuadratMetrics` class takes an `.obj` mesh file, dimensions of the input fi
 * `surface_rugosity`: Surface rugosity is calculated as 3d_surface_area/2d_surface_area
 
 This class uses code forked from [this repository.](https://github.com/shawes/mesh3d-python)
+
+**NOTE:** If a `.ply` file is used it is first converted to an `.obj` file and saved in the same directory.
 
 ```python
 >>> from coral_complexity_metrics import QuadratMetrics
@@ -125,15 +126,3 @@ This class uses code forked from [this repository.](https://github.com/shawes/me
 ]
 
 ```
-
----
-**NOTE:** You can convert a `.ply` file to a `.obj` file using the following code:
-
-```python
-import meshio
-
-mesh = meshio.read("path/to/ply/file")
-mesh.write("output.obj")
-```
-
----
