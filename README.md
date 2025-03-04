@@ -32,7 +32,7 @@ The `Shading` class takes in a mesh `.ply` or `.obj` file as input and returns s
 
 ### Colony Geometric Measures
 
-The `GeometricMeasures` class computes geometric measures of a given mesh. It has been validated for inidivual coral colonies, but can also be used on entire plots if the mesh can be closed to compute volume. By default the scipt only closes holes below a size of 1000, but this can be changed by specifying the `max_hole_size` argument. This function takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
+The `GeometricMeasures` class computes geometric measures of a given mesh. It has been validated for individual coral colonies, but can also be used on entire plots if the mesh can be closed to compute volume. By default the scipt only closes holes below a size of 1000, but this can be changed by specifying the `max_hole_size` argument. This function takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
 
 * `File_Path` : File path to the original input mesh. Identifies each coral in the file
 * `Vol`: Volume of first mesh (the coral)
@@ -48,7 +48,7 @@ Please also note:
 * *Transformations must be carried out by the user to get to square and cubic cm*
 * *Models must have been scaled in the software you used to create them for this code to work*
 
-This class uses code originally written by Eoghan Aston, which was published [here.](https://github.com/E-Aston/CoralGeometry)
+This class uses code originally written by Eoghan Aston, repository [here](https://github.com/E-Aston/CoralGeometry) and paper [here](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.854395/full).
 
 ```python
 >>> from coral_complexity_metrics import GeometricMeasures
