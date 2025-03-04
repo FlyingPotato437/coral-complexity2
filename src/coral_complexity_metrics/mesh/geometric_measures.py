@@ -24,6 +24,7 @@ class GeometricMeasures:
             print(f"3D model file not found: {file}")
             return
 
+        print("Loading 3D mesh...")
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(file)
 
@@ -39,6 +40,7 @@ class GeometricMeasures:
         dict: Dictionary containing various geometric measures of the mesh.
         """
         # Compute measures of original mesh
+        print("Calculating geometric measures...")
         dict = (self.mesh.get_geometric_measures())
         mesh_sa = dict['surface_area']  # Assigns variable name
 

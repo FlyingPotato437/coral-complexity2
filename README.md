@@ -32,7 +32,7 @@ The `Shading` class takes in a mesh `.ply` or `.obj` file as input and returns s
 
 ### Colony Geometric Measures
 
-The `GeometricMeasures` class computes geometric measures of individual coral colonies. It takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
+The `GeometricMeasures` class computes geometric measures of **individual coral colonies**. It takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
 
 * `File_Path` : File path to the original input mesh. Identifies each coral in the file
 * `Vol`: Volume of first mesh (the coral)
