@@ -32,9 +32,12 @@ class GeometricMeasures:
         self.mesh = ms  # Assigns the mesh to the class variable
         print("Mesh loaded")
 
-    def calculate(self):
+    def calculate(self, max_hole_size=1000):
         """
         Calculate geometric measures of the mesh.
+
+        Parameters:
+        max_hole_size (int): Maximum hole size to close in the mesh.
 
         Returns:
         dict: Dictionary containing various geometric measures of the mesh.
@@ -53,7 +56,7 @@ class GeometricMeasures:
 
         # close holes
         self.mesh.meshing_close_holes(
-            maxholesize=1000, selected=False, newfaceselected=True, selfintersection=False)
+            maxholesize=max_hole_size, selected=False, newfaceselected=True, selfintersection=False)
 
         # Compute measures of closed mesh
         dict = (self.mesh.get_geometric_measures())
@@ -62,7 +65,7 @@ class GeometricMeasures:
         try:
             mesh_volume = dict['mesh_volume']
         except KeyError:
-            print("Error: Mesh volume not found. Please make sure you are using a valid mesh file containing a single coral colony.")
+            print("Error: Mesh volume not calculated. Consider increasing the maximum hole size for closing the mesh by setting the max_hole_size parameter to a higher value.")
             return
 
         boundingbox = self.mesh.current_mesh().bounding_box()

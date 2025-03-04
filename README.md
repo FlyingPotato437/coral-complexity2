@@ -32,7 +32,7 @@ The `Shading` class takes in a mesh `.ply` or `.obj` file as input and returns s
 
 ### Colony Geometric Measures
 
-The `GeometricMeasures` class computes geometric measures of **individual coral colonies**. It takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
+The `GeometricMeasures` class computes geometric measures of a given mesh. It has been validated for inidivual coral colonies, but can also be used on entire plots if the mesh can be closed to compute volume. By default the scipt only closes holes below a size of 1000, but this can be changed by specifying the `max_hole_size` argument. This function takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
 
 * `File_Path` : File path to the original input mesh. Identifies each coral in the file
 * `Vol`: Volume of first mesh (the coral)
@@ -57,7 +57,9 @@ This class uses code originally written by Eoghan Aston, which was published [he
 >>> gm.load_mesh("path/to/mesh/file")
 
 >>> # calculate geometric measures
->>> gm.calculate()
+>>> gm.calculate(
+>>>     "max_hole_size"=1500 # OPTIONAL: if not provided, defaults to 1000
+>>>     )
 
 {
     'File_Path': 'mesh.ply', 
@@ -137,7 +139,7 @@ Renata Ferrari Legorreta (Ecological Risk Modeller) - r.ferrarilegorreta@aims.go
 
 * Srikanth Samy: https://github.com/FlyingPotato437/srikanth_coral_shading_script
 * Eoghan Aston: https://github.com/E-Aston/CoralGeometry
-* https://github.com/shawes/mesh3d-python
+* Steven Hawes: https://github.com/shawes/mesh3d-python
 
 ## License
 
