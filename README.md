@@ -1,4 +1,4 @@
-# coral-complexity-metrics
+# Coral Complexity Measures
 
 **coral-complexity-measures** is a Python package for extracting 3D complexity metrics from models (in `.ply` or `.obj` format) of coral reefs.
 
