@@ -12,9 +12,9 @@ class Mesh(object):
         self.faces = faces
         self.name = name
 
-    def calculate_metrics(self, quadrats):
+    def calculate_metrics(self, quadrats, disable_tqdm=False):
         metrics = list()
-        for quadrat in tqdm(quadrats):
+        for quadrat in tqdm(quadrats, disable=disable_tqdm):
             metric = Metric()
             quadrat_vertices = list()
             metric.quadrat_id = quadrat.id

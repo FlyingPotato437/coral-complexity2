@@ -1,5 +1,6 @@
 import os
 import pymeshlab
+from tqdm import tqdm
 
 
 class GeometricMeasures:
@@ -12,7 +13,7 @@ class GeometricMeasures:
         self.mesh_file = None
         self.mesh = None
 
-    def load_mesh(self, file):
+    def load_mesh(self, file, verbose=True):
         """
         Load a 3D mesh from the specified file.
 
@@ -24,15 +25,17 @@ class GeometricMeasures:
             print(f"3D model file not found: {file}")
             return
 
-        print("Loading 3D mesh...")
+        if verbose:
+            print("Loading 3D mesh...")
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(file)
 
         ms.set_current_mesh(0)  # Makes the current mesh the original
         self.mesh = ms  # Assigns the mesh to the class variable
-        print("Mesh loaded")
+        if verbose:
+            print("Mesh loaded")
 
-    def calculate(self, max_hole_size=1000):
+    def calculate(self, max_hole_size=1000, verbose=True):
         """
         Calculate geometric measures of the mesh.
 
@@ -43,7 +46,8 @@ class GeometricMeasures:
         dict: Dictionary containing various geometric measures of the mesh.
         """
         # Compute measures of original mesh
-        print("Calculating geometric measures...")
+        if verbose:
+            print("Calculating geometric measures...")
         dict = (self.mesh.get_geometric_measures())
         mesh_sa = dict['surface_area']  # Assigns variable name
 
@@ -96,3 +100,36 @@ class GeometricMeasures:
             "diameter": width,
             "height": height
         }
+
+    def process_directory(self, directory, csv_file=None, max_hole_size=1000):
+        """
+        Process all mesh files in the specified directory.
+
+        Parameters:
+        directory (str): Path to the directory containing 3D model files.
+        csv_file (str): Path to the CSV file to save the results.
+        max_hole_size (int): Maximum hole size to close in the mesh.
+
+        Returns:
+        list: List of dictionaries containing geometric measures of each mesh.
+        """
+
+        if not os.path.exists(directory):
+            print(f"Directory not found: {directory}")
+            return
+
+        mesh_files = [file for file in os.listdir(
+            directory) if file.endswith(".obj") or file.endswith(".ply")]
+
+        results = []
+        for mesh_file in tqdm(mesh_files, desc="Processing 3D models"):
+            self.load_mesh(os.path.join(directory, mesh_file), verbose=False)
+            results.append(self.calculate(max_hole_size, verbose=False))
+
+        if csv_file:
+            with open(csv_file, "w") as f:
+                f.write(
+                    "mesh_file,volume,CVH_volume,ASR,proportion_occupied,surface_area,SSF,diameter,height\n")
+                for result in results:
+                    f.write(f"{result['mesh_file']},{result['volume']},{result['CVH_volume']},{result['ASR']},{result['proportion_occupied']},{result['surface_area']},{result['SSF']},{result['diameter']},{result['height']}\n")
+        return results

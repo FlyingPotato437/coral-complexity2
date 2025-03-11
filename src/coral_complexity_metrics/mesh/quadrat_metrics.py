@@ -3,6 +3,7 @@ from ._quadrat_builder import QuadratBuilder
 from ._quadrilateral import Quadrilateral
 from ._vertex import Vertex
 from ._mesh_io import read_obj
+from tqdm import tqdm
 import sys
 import os
 import meshio
@@ -26,7 +27,7 @@ class QuadratMetrics:
         self.mesh_file = None
         self.mesh = None
 
-    def ply_to_obj(self, ply_file):
+    def ply_to_obj(self, ply_file, verbose=True):
         """
         Converts a .ply file to a .obj file and saves it in the same directory.
 
@@ -36,13 +37,14 @@ class QuadratMetrics:
         Returns:
         str: Path to the saved .obj file.
         """
-        print("Converting .ply file to .obj file...")
+        if verbose:
+            print("Converting .ply file to .obj file...")
         mesh = meshio.read(ply_file)
         obj_file = ply_file.replace(".ply", ".obj")
         mesh.write(obj_file)
         return obj_file
 
-    def load_mesh(self, file):
+    def load_mesh(self, file, verbose=True):
         """
         Reads in a mesh file in .obj format and stores it in a corresponding mesh object.
 
@@ -58,18 +60,20 @@ class QuadratMetrics:
             return
 
         if file.endswith(".ply"):
-            self.mesh_file = self.ply_to_obj(file)
-        self.mesh = read_obj(self.mesh_file, True, DimensionOrder(self.dim))
-        print("Mesh loaded")
+            self.mesh_file = self.ply_to_obj(file, verbose)
+        self.mesh = read_obj(self.mesh_file, verbose, DimensionOrder(self.dim))
+        if verbose:
+            print("Mesh loaded")
 
-    def _calculate_bounding_box(self):
+    def _calculate_bounding_box(self, verbose=True):
         """
         Calculates the bounding box from the extreme vertices in the mesh.
 
         Returns:
         None
         """
-        print("Calculating the bounding box...")
+        if verbose:
+            print("Calculating the bounding box...")
 
         max_x = sys.maxsize * -1
         max_y = sys.maxsize * -1
@@ -90,40 +94,46 @@ class QuadratMetrics:
         self.bounding_box = Quadrilateral(Vertex(min_x, min_y, 0), Vertex(max_x, min_y, 0),
                                           Vertex(max_x, max_y, 0), Vertex(min_x, max_y, 0))
 
-    def _fit_quadrats_to_meshes(self):
+    def _fit_quadrats_to_meshes(self, verbose=True):
         """
         Generates the quadrats inside the bounding box.
 
         Returns:
         None
         """
-        print("Generating the quadrats inside the bounding box...")
+        if verbose:
+            print("Generating the quadrats inside the bounding box...")
 
         self.quadrats = QuadratBuilder().build(self.bounding_box, self.size)
 
-        print("There are this many quadrats: " + str(len(self.quadrats)))
+        if verbose:
+            print("There are this many quadrats: " + str(len(self.quadrats)))
 
-    def _calculate_metrics_of_quadrats(self):
+    def _calculate_metrics_of_quadrats(self, verbose=True):
         """
         Calculates metrics for each quadrat.
 
         Returns:
         None
         """
-        print("Calculating metrics...")
+        if verbose:
+            print("Calculating metrics...")
+            self.metrics = self.mesh.calculate_metrics(self.quadrats)
 
-        self.metrics = self.mesh.calculate_metrics(self.quadrats)
+        else:
+            self.metrics = self.mesh.calculate_metrics(
+                self.quadrats, disable_tqdm=True)
 
-    def calculate(self):
+    def calculate(self, verbose=True):
         """
         Calculates the bounding box, fits quadrats to meshes, and calculates metrics for each quadrat.
 
         Returns:
         list: List of dictionaries containing metrics for each quadrat.
         """
-        self._calculate_bounding_box()
-        self._fit_quadrats_to_meshes()
-        self._calculate_metrics_of_quadrats()
+        self._calculate_bounding_box(verbose)
+        self._fit_quadrats_to_meshes(verbose)
+        self._calculate_metrics_of_quadrats(verbose)
         results = []
         for metric in self.metrics:
             results.append({
@@ -142,4 +152,38 @@ class QuadratMetrics:
                 "2d_surface_area": metric.area2d,
                 "surface_rugosity": metric.surface_rugosity()
             })
+        return results
+
+    def process_directory(self, directory, csv_file=None):
+        """
+        Process all mesh files in the specified directory.
+
+        Parameters:
+        directory (str): Path to the directory containing 3D model files.
+        csv_file (str): Path to the CSV file to save the results.
+
+        Returns:
+        list: List of dictionaries containing metrics for each quadrat.
+        """
+
+        if not os.path.exists(directory):
+            print(f"Directory not found: {directory}")
+            return
+
+        mesh_files = [file for file in os.listdir(
+            directory) if file.endswith(".obj") or file.endswith(".ply")]
+
+        results = []
+        for mesh_file in tqdm(mesh_files, desc="Processing 3D models"):
+            self.load_mesh(os.path.join(directory, mesh_file), verbose=False)
+            results.extend(self.calculate(verbose=False))
+
+        if csv_file:
+            with open(csv_file, "w") as f:
+                f.write(
+                    "mesh_name,quadrat_size_m,quadrat_rel_x,quadrat_rel_y,quadrat_rel_z_mean,quadrat_rel_z_sd,quadrat_abs_x,quadrat_abs_y,quadrat_abs_z,num_faces,num_vertices,3d_surface_area,2d_surface_area,surface_rugosity\n")
+                for result in results:
+                    f.write(",".join([str(result[key])
+                            for key in result.keys()]) + "\n")
+
         return results

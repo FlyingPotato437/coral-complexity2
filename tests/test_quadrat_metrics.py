@@ -86,3 +86,33 @@ def test_quad_calculate_obj(quadrat_metrics):
     assert results[0]['3d_surface_area'] == 0.06191374971805021
     assert results[0]['2d_surface_area'] == 0.03885501641085011
     assert results[0]['surface_rugosity'] == 1.5934557603419526
+
+
+def test_quad_process_directory(quadrat_metrics):
+    """
+    Test the process_directory method of the QuadratMetrics class.
+    """
+    directory = 'tests/sample_data'
+    results = quadrat_metrics.process_directory(directory)
+    assert len(results) == 2
+    assert results[0]['quadrat_size_m'] == 1
+    assert results[0]['quadrat_rel_x'] == 0
+    assert results[0]['quadrat_rel_y'] == 0
+    assert results[0]['quadrat_rel_z_mean'] == -7.43032050037764
+    assert results[0]['quadrat_rel_z_sd'] == 0.0555879143480548
+    assert results[0]['quadrat_abs_x'] == -1.3303690552711487
+    assert results[0]['quadrat_abs_y'] == -0.035120585933327675
+    assert results[0]['quadrat_abs_z'] == 0.0
+    assert results[0]['num_faces'] == 11117
+    assert results[0]['num_vertices'] == 5773
+    assert results[0]['3d_surface_area'] == 0.06191374971805021
+    assert results[0]['2d_surface_area'] == 0.03885501641085011
+    assert results[0]['surface_rugosity'] == 1.5934557603419526
+    assert results[1]['quadrat_size_m'] == 1
+    assert results[1]['quadrat_rel_x'] == 0
+    assert results[1]['quadrat_rel_y'] == 0
+    assert results[1]['quadrat_rel_z_mean'] == -7.43032050037764
+    assert results[1]['quadrat_rel_z_sd'] == 0.0555879143480548
+    assert results[1]['quadrat_abs_x'] == -1.3303690552711487
+    assert results[1]['quadrat_abs_y'] == -0.035120585933327675
+    assert results[1]['quadrat_abs_z'] == 0.0

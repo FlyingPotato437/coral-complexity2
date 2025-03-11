@@ -18,7 +18,7 @@ class Shading:
         self.cpu_limit = None
         self.mesh = None
 
-    def load_mesh(self, mesh_file):
+    def load_mesh(self, mesh_file, verbose=True):
         """
         Load a 3D mesh from the specified file.
 
@@ -30,15 +30,17 @@ class Shading:
             print(f"3D model file not found: {mesh_file}")
             return
 
-        print("Loading 3D mesh...")
+        if verbose:
+            print("Loading 3D mesh...")
         try:
             self.mesh = pv.read(mesh_file)
         except Exception as e:
             print(f"Failed to load 3D model: {e}")
             return
 
-        print(f"Number of points: {self.mesh.n_points}")
-        print(f"Number of faces: {self.mesh.n_cells}")
+        if verbose:
+            print(f"Number of points: {self.mesh.n_points}")
+            print(f"Number of faces: {self.mesh.n_cells}")
 
     def build_bvh(self, triangles, indices, start, end, depth=0, max_depth=20):
         """
@@ -265,7 +267,7 @@ class Shading:
 
         return np.where(filtered_indices)[0]
 
-    def calculate(self, light_dir=np.array([0, 0, -1]), point_of_interest=None, window_size=None, sample_size=1000000, cpu_limit=None):
+    def calculate(self, light_dir=np.array([0, 0, -1]), point_of_interest=None, window_size=None, sample_size=1000000, cpu_limit=None, verbose=True):
         """
         Calculate the shading percentage based on the coral structure.
 
@@ -283,9 +285,10 @@ class Shading:
             print("No 3D model loaded. Please load a 3D model first.")
             return
 
-        print("Calculating shading percentage based on coral structure...")
+        if verbose:
+            print("Calculating shading percentage based on coral structure...")
+            print("Preparing mesh data...")
 
-        print("Preparing mesh data...")
         self.mesh.compute_normals(inplace=True)
         points = self.mesh.points
         faces = self.mesh.faces.reshape(-1, 4)[:, 1:4]
@@ -296,28 +299,33 @@ class Shading:
             box_min = point_of_interest - window_size / 2
             box_max = point_of_interest + window_size / 2
 
-            print("Filtering points...")
+            if verbose:
+                print("Filtering points...")
             mask = np.all((points >= box_min) & (points <= box_max), axis=1)
             window_points = points[mask]
 
             if len(window_points) > sample_size:
-                print(
-                    f"Sampling {sample_size} points from {len(window_points)} points in the window...")
+                if verbose:
+                    print(
+                        f"Sampling {sample_size} points from {len(window_points)} points in the window...")
                 sampled_indices = np.random.choice(
                     len(window_points), sample_size, replace=False)
                 sampled_points = window_points[sampled_indices]
             else:
                 sampled_points = window_points
 
-            print("Filtering triangles...")
+            if verbose:
+                print("Filtering triangles...")
             indices = self.parallel_triangle_filtering(
                 triangles, box_min, box_max, self.cpu_limit)
         else:
             # Full model calculation
-            print("Processing full model...")
+            if verbose:
+                print("Processing full model...")
             if len(points) > sample_size:
-                print(
-                    f"Sampling {sample_size} points from {len(points)} total points...")
+                if verbose:
+                    print(
+                        f"Sampling {sample_size} points from {len(points)} total points...")
                 sampled_indices = np.random.choice(
                     len(points), sample_size, replace=False)
                 sampled_points = points[sampled_indices]
@@ -325,12 +333,9 @@ class Shading:
                 sampled_points = points
             indices = np.arange(len(triangles))
 
-        print("Building BVH...")
-        with tqdm(total=len(indices), desc="Building BVH") as pbar:
-            def bvh_progress_callback(progress):
-                pbar.n = progress
-                pbar.refresh()
-            bvh_root = self.build_bvh(triangles, indices, 0, len(indices))
+        if verbose:
+            print("Building BVH...")
+        bvh_root = self.build_bvh(triangles, indices, 0, len(indices))
 
         if self.cpu_limit is None:
             num_processes = mp.cpu_count()
@@ -341,20 +346,24 @@ class Shading:
         chunks = [sampled_points[i:i + chunk_size]
                   for i in range(0, len(sampled_points), chunk_size)]
 
-        print(
-            f"Using {num_processes} CPU cores to process {len(chunks)} chunks...")
+        if verbose:
+            print(
+                f"Using {num_processes} CPU cores to process {len(chunks)} chunks...")
 
         with mp.Pool(num_processes) as pool:
-            results = list(tqdm(
-                pool.imap(self.process_chunk, [
-                    (chunk, bvh_root, triangles, indices, light_dir) for chunk in chunks]),
-                total=len(chunks),
-                desc="Processing chunks",
-                mininterval=0.1,  # Update at most every 0.1 seconds
-                smoothing=0.1  # Smooth out the updates
-            ))
-
-        print("All chunks processed. Calculating final result...")
+            if verbose:
+                results = list(tqdm(
+                    pool.imap(self.process_chunk, [
+                        (chunk, bvh_root, triangles, indices, light_dir) for chunk in chunks]),
+                    total=len(chunks),
+                    desc="Processing chunks",
+                    mininterval=0.1,  # Update at most every 0.1 seconds
+                    smoothing=0.1  # Smooth out the updates
+                ))
+                print("All chunks processed. Calculating final result...")
+            else:
+                results = pool.map(self.process_chunk, [
+                    (chunk, bvh_root, triangles, indices, light_dir) for chunk in chunks])
         shadowed = np.concatenate(results)
         shaded_percentage = np.mean(shadowed) * 100
 
@@ -363,3 +372,42 @@ class Shading:
             'shaded_percentage': f"{shaded_percentage:.2f}%",
             'illuminated_percentage': f"{100 - shaded_percentage:.2f}%"
         }
+
+    def process_directory(self, directory, csv_file=None, light_dir=np.array([0, 0, -1]), point_of_interest=None, window_size=None, sample_size=1000000, cpu_limit=None):
+        """
+        Process all 3D models in the specified directory.
+
+        Parameters:
+        directory (str): Path to the directory containing 3D models.
+        light_dir (np.ndarray): Direction of the light source.
+        point_of_interest (np.ndarray): Point of interest for localized calculation.
+        window_size (np.ndarray): Size of the window around the point of interest.
+        sample_size (int): Number of points to sample for the calculation.
+        cpu_limit (int): Maximum number of CPU cores to use.
+
+        Returns:
+        list: List of dictionaries containing the mesh file name, shaded percentage, and illuminated percentage.
+        """
+        if not os.path.exists(directory):
+            print(f"Directory not found: {directory}")
+            return
+
+        mesh_files = [f for f in os.listdir(
+            directory) if (f.endswith('.obj') or f.endswith('.ply'))]
+
+        results = []
+        for mesh_file in tqdm(mesh_files, desc="Processing 3D models"):
+            self.load_mesh(os.path.join(directory, mesh_file), verbose=False)
+            result = self.calculate(
+                light_dir, point_of_interest, window_size, sample_size, cpu_limit, verbose=False)
+            results.append(result)
+
+        if csv_file:
+            with open(csv_file, 'w') as f:
+                f.write("Mesh File,Shaded Percentage,Illuminated Percentage\n")
+                for result in results:
+                    f.write(
+                        f"{result['mesh_file']},{result['shaded_percentage']},{result['illuminated_percentage']}\n")
+            print(f"Results saved to: {csv_file}")
+
+        return results

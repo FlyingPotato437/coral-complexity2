@@ -63,3 +63,16 @@ def test_calculate_shading_ply(shading):
     assert result['mesh_file'] == sample_plot
     assert result['shaded_percentage'] == '29.48%'
     assert result['illuminated_percentage'] == '70.52%'
+
+
+def test_shading_process_directory(shading):
+    """
+    Test the process_directory method of the Shading class.
+    """
+    directory = 'tests/sample_data'
+    results = shading.process_directory(directory)
+    assert len(results) == 2
+    assert results[0]['shaded_percentage'] == '29.48%'
+    assert results[0]['illuminated_percentage'] == '70.52%'
+    assert results[1]['shaded_percentage'] == '29.48%'
+    assert results[1]['illuminated_percentage'] == '70.52%'

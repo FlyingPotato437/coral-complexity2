@@ -5,29 +5,31 @@
 ## Installation
 
 ```
-pip install coral_complexity_metrics
+git clone https://github.com/open-AIMS/coral-complexity-metrics.git
+cd coral-complexity-metrics/
+pip install .
 ```
 
 ## Usage
 
 ### Shading
 
-The `Shading` class takes in a mesh `.ply` or `.obj` file as input and returns shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://github.com/FlyingPotato437/srikanth_coral_shading_script)
+The `Shading` class takes in a mesh `.ply` or `.obj` file as input and calculates shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://github.com/FlyingPotato437/srikanth_coral_shading_script)
 
 ```python
->>> from coral_complexity_metrics import Shading
+from coral_complexity_metrics import Shading
 
->>> sh = Shading()
->>> sh.load_mesh("path/to/mesh/file")
+sh = Shading()
 
->>> # calculate shading metric
->>> sh.calculate()
+# calculate shading metric for a single mesh file
+sh.load_mesh("path/to/mesh/file")
+sh.calculate()
 
-{
-    'mesh_file': "mesh.ply",
-    'shaded_percentage': "20%",
-    'illuminated_percentage': "80%"
-}
+# process an entire directory of mesh files
+sh.process_directory(
+    "path/to/input/folder", 
+    csv_file="shading_results.csv" # Optionally provide an output csv to save the results
+    )
 ```
 
 ### Colony Geometric Measures
@@ -51,32 +53,26 @@ Please also note:
 This class uses code originally written by Eoghan Aston, repository [here](https://github.com/E-Aston/CoralGeometry) and paper [here](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.854395/full).
 
 ```python
->>> from coral_complexity_metrics import GeometricMeasures
+from coral_complexity_metrics import GeometricMeasures
 
->>> gm = GeometricMeasures()
->>> gm.load_mesh("path/to/mesh/file")
+gm = GeometricMeasures()
 
->>> # calculate geometric measures
->>> gm.calculate(
->>>     "max_hole_size"=1500 # OPTIONAL: if not provided, defaults to 1000
->>>     )
+# calculate geometric measures for a single mesh file
+gm.load_mesh("path/to/mesh/file")
+gm.calculate(
+    "max_hole_size"=1500 # OPTIONAL: if not provided, defaults to 1000
+    )
 
-{
-    'File_Path': 'mesh.ply', 
-    'Vol': 0.025045684469949477, 
-    'CVH_Vol': 0.06598048853525199, 
-    'ASR': 0.040934804065302505, 
-    'PrOcc': 0.379592285931137, 
-    'Surface_Area': 0.6946476101875305, 
-    'SSF': 0.05892887769994853, 
-    'Diameter': 0.9493150040507317, 
-    'Height': 0.43454796075820923
-}
+# process an entire directory of mesh files
+gm.process_directory(
+    "path/to/input/folder", 
+    csv_file="geometric_results.csv" # Optionally provide an output csv to save the results
+    )
 ```
 
 ### Quadrat Metrics 
 
-The `QuadratMetrics` class takes an `.obj` or `.ply` mesh file, dimensions of the input file, and size of quadrats as input. It outputs a dictionary per quadrat containing the following metrics:
+The `QuadratMetrics` class takes an `.obj` or `.ply` mesh file, dimensions of the input file, and size of quadrats as input. It calculates the following metrics for each quadrant:
 * `quadrat_size_m`: The size of the fitted quadrats
 * `quadrat_rel_x`: The relative x coordinates of the quadrat
 * `quadrat_rel_y`: The relative y coordinates of the quadrat
@@ -96,36 +92,22 @@ This class uses code forked from [this repository.](https://github.com/shawes/me
 **NOTE:** *If a `.ply` file is used it is first converted to an `.obj` file and saved in the same directory.*
 
 ```python
->>> from coral_complexity_metrics import QuadratMetrics
+from coral_complexity_metrics import QuadratMetrics
 
->>> qm = QuadratMetrics(
+qm = QuadratMetrics(
     dim="XYZ", # the dimensions of the input files WLH (width-length-height)
     size=1 # the size of a quadrat (standard is metres, but depends on the mesh units)
     )
 
->>> qm.load_mesh("path/to/mesh/file")
+# calculate quadrat metrics for a single mesh file
+qm.load_mesh("path/to/mesh/file")
+qm.calculate()
 
->>> # calculate quadrat metrics
->>> qm.calculate()
-
-[
-    {
-        'mesh_name': 'mesh.obj', 
-        'quadrat_size_m': 1, 
-        'quadrat_rel_x': 0, 
-        'quadrat_rel_y': 0, 
-        'quadrat_rel_z_mean': 0.3477004543933338, 
-        'quadrat_rel_z_sd': 0.11053319793189083, 
-        'quadrat_abs_x': 0.3118795, 
-        'quadrat_abs_y': 0.24110750000000003, 
-        'quadrat_abs_z': 0.0, 
-        'num_faces': 56172, 
-        'num_vertices': 28088, 
-        '3d_surface_area': 0.9226908132507138, 
-        '2d_surface_area': 0.48581063044899947, 
-        'surface_rugosity': 1.899280821413763
-    }
-]
+# process an entire directory of mesh files
+qm.process_directory(
+    "path/to/input/folder", 
+    csv_file="quadrat_results.csv" # Optionally provide an output csv to save the results
+    )
 
 ```
 
