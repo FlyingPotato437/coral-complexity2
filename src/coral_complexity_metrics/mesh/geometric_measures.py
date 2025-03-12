@@ -40,7 +40,7 @@ class GeometricMeasures:
         Calculate geometric measures of the mesh.
 
         Parameters:
-        max_hole_size (int): Maximum hole size to close in the mesh.
+        max_hole_size (int): Maximum hole size to close in the mesh. The size is expressed as number of edges composing the hole boundary
 
         Returns:
         dict: Dictionary containing various geometric measures of the mesh.

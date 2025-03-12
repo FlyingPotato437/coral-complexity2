@@ -34,7 +34,7 @@ sh.process_directory(
 
 ### Colony Geometric Measures
 
-The `GeometricMeasures` class computes geometric measures of a given mesh. It has been validated for individual coral colonies, but can also be used on entire plots if the mesh can be closed to compute volume. By default the scipt only closes holes below a size of 1000, but this can be changed by specifying the `max_hole_size` argument. This function takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
+The `GeometricMeasures` class computes geometric measures of a given mesh. It has been validated for individual coral colonies, but can also be used on entire plots if the mesh can be closed to compute volume. By default the scipt only closes holes below a size of 1000 (where size is defined as the number of edges composing the hole boundary), but this can be changed by specifying the `max_hole_size` argument. This function takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
 
 * `File_Path` : File path to the original input mesh. Identifies each coral in the file
 * `Vol`: Volume of first mesh (the coral)
@@ -47,6 +47,7 @@ The `GeometricMeasures` class computes geometric measures of a given mesh. It ha
 * `Height`: Colony height (length along Z-axis of bounding box) 
 
 Please also note:
+* *Max hole size is defined as the number of edges composing the hole boundary*
 * *Transformations must be carried out by the user to get to square and cubic cm*
 * *Models must have been scaled in the software you used to create them for this code to work*
 
@@ -60,7 +61,7 @@ gm = GeometricMeasures()
 # calculate geometric measures for a single mesh file
 gm.load_mesh("path/to/mesh/file")
 gm.calculate(
-    "max_hole_size"=1500 # OPTIONAL: if not provided, defaults to 1000
+    "max_hole_size"=1500 # OPTIONAL: the maximum number of edges composing the hole boundary
     )
 
 # process an entire directory of mesh files
@@ -95,8 +96,8 @@ This class uses code forked from [this repository.](https://github.com/shawes/me
 from coral_complexity_metrics import QuadratMetrics
 
 qm = QuadratMetrics(
-    dim="XYZ", # the dimensions of the input files WLH (width-length-height)
-    size=1 # the size of a quadrat (standard is metres, but depends on the mesh units)
+    dim="XYZ", # the dimensions of the input files WLH (width-length-height). Either "XYZ", "XZY" or "ZYX".
+    size=1 # the size of a quadrat (standard is metres, but depends on the units in the underlying mesh file)
     )
 
 # calculate quadrat metrics for a single mesh file

@@ -19,8 +19,8 @@ class QuadratMetrics:
         Initialize the QuadratMetrics class with dimension and size.
 
         Parameters:
-        dim (int): Dimension order for the mesh.
-        size (float): Size of the quadrats.
+        dim (int): Dimension order for the mesh. Either "XYZ", "XZY" or"ZYX".
+        size (float): Size of the quadrats. Typically in meters, but depends on the units of the mesh.
         """
         self.dim = dim
         self.size = size
