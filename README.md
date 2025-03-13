@@ -12,6 +12,28 @@ pip install .
 
 ## Usage
 
+### Utility Functions
+
+#### Crop Meshes
+
+The `crop_mesh_to_segments` function allows users to crop a mesh file to the segments contained in a shapefile. The function will output a cropped mesh per segment to the output directory provided.
+
+**NOTE**: The output meshes of this function should be reviewed before they are used to calulate complexity metrics.
+
+```python
+from coral_complexity_metrics.utils import crop_mesh_to_segments
+
+ply_file = "path/to/mesh/file"
+shp_file = "path/to/shape/file"
+output_dir = "output/directory"
+
+crop_mesh_to_segments(
+    ply_file, # input mesh file
+    shp_file, # input shape file
+    output_dir # output directory to store cropped mesh files
+    )
+```
+
 ### Shading
 
 The `Shading` class takes in a mesh `.ply` or `.obj` file as input and calculates shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://github.com/FlyingPotato437/srikanth_coral_shading_script)

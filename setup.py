@@ -25,7 +25,9 @@ setup(
         "six",
         "numpy",
         "pyvista",
-        "tqdm"
+        "tqdm",
+        "open3d",
+        "geopandas",
     ],
     python_requires=">=3.7, <4",
 )
