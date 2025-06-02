@@ -4,15 +4,152 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coral_complexity_metrics"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
   { name="Hannah White", email="ha.white@aims.gov.au" },
 ]
-description = "A Python project for estimating coral complexity metrics"
+description = "A comprehensive Python package for estimating coral complexity metrics with enhanced shading analysis"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Visualization",
     "Operating System :: OS Independent",
 ]
 license = {file = "LICENSE"}
+keywords = ["coral", "complexity", "3D", "shading", "marine-biology", "photogrammetry"]
+
+dependencies = [
+    "numpy>=1.20.0",
+    "scipy>=1.7.0",
+    "pandas>=1.3.0",
+    "matplotlib>=3.4.0",
+    "seaborn>=0.11.0",
+    "scikit-learn>=1.0.0",
+    "tqdm>=4.60.0",
+    "pyvista>=0.37.0",
+    "pymeshlab>=2022.2",
+    "geopandas>=0.10.0",
+    "shapely>=1.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=3.0",
+    "black>=22.0",
+    "flake8>=4.0",
+    "mypy>=0.900",
+    "pre-commit>=2.15",
+]
+docs = [
+    "sphinx>=4.0",
+    "sphinx-rtd-theme>=1.0",
+    "numpydoc>=1.4",
+    "sphinx-gallery>=0.10",
+]
+viz = [
+    "plotly>=5.0",
+    "ipywidgets>=7.6",
+    "jupyter>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/aims-ks/coral-complexity-metrics"
+Repository = "https://github.com/aims-ks/coral-complexity-metrics"
+Documentation = "https://coral-complexity-metrics.readthedocs.io"
+Issues = "https://github.com/aims-ks/coral-complexity-metrics/issues"
+
+[project.scripts]
+coral-metrics = "coral_complexity_metrics.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "requires_data: marks tests that require external data files",
+]
+
+[tool.coverage.run]
+source = ["src/coral_complexity_metrics"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pyvista.*",
+    "pymeshlab.*",
+    "tqdm.*",
+    "sklearn.*",
+    "scipy.*",
+    "geopandas.*",
+    "shapely.*",
+]
+ignore_missing_imports = true
