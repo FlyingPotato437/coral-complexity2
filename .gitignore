@@ -8,4 +8,5 @@ __pycache__/
 *.so
 *~
 *test.ipynb
+test_data/
 *.csv
