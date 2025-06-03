@@ -6,19 +6,22 @@ They are not part of the public API and may change without notice.
 """
 
 # Legacy internal modules
-from ._dimension_order import DimensionOrder
-from ._face import Face
-from ._helpers import get_z_value, mean, sd, get_midpoint_of_edge
-from ._mesh import Mesh
-from ._mesh_io import MeshIO
-from ._quadrat import Quadrat
-from ._quadrat_builder import QuadratBuilder
-from ._quadrilateral import Quadrilateral
-from ._shading_utils import AABB, BVHNode
-from ._vertex import Vertex
+# NOTE: these modules live one level above this package. Use ``..`` imports so
+# they resolve correctly when ``_internal`` is imported.  Using ``.`` relative
+# imports here results in ``ImportError`` because Python looks for the modules
+# inside the ``_internal`` package.
+from .._dimension_order import DimensionOrder
+from .._face import Face
+from .._helpers import get_z_value, mean, sd, get_midpoint_of_edge
+from .._mesh import Mesh
+from .._quadrat import Quadrat
+from .._quadrat_builder import QuadratBuilder
+from .._quadrilateral import Quadrilateral
+from .._shading_utils import AABB, BVHNode
+from .._vertex import Vertex
 
 __all__ = [
     'DimensionOrder', 'Face', 'get_z_value', 'mean', 'sd', 'get_midpoint_of_edge',
-    'Mesh', 'MeshIO', 'Quadrat', 'QuadratBuilder', 'Quadrilateral',
+    'Mesh', 'Quadrat', 'QuadratBuilder', 'Quadrilateral',
     'AABB', 'BVHNode', 'Vertex'
 ]
