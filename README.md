@@ -1,151 +1,181 @@
-# Coral Complexity Measures
+# EcoRRAP: Enhanced Coral Reef Complexity Metrics
 
-**coral-complexity-measures** is a Python package for extracting 3D complexity metrics from models (in `.ply` or `.obj` format) of coral reefs.
+A comprehensive Python package for analyzing 3D coral reef structural complexity using photogrammetry and LiDAR-derived mesh data.
+
+## Overview
+
+EcoRRAP provides advanced tools for quantifying coral reef structural complexity through various geometric, optical, and spatial metrics. The package supports both traditional complexity measures and cutting-edge analysis techniques including mesh-by-shapefile processing, data quality assessment, and modular shading analysis.
+
+## Key Features
+
+- **Comprehensive Metrics**: 17+ standardized complexity metrics including surface rugosity, fractal dimension, volume calculations, and spatial refuge measurements
+- **Shading Analysis**: Ray-traced shading calculations with environmental adjustments for slope, aspect, and solar positioning
+- **Shapefile Integration**: Batch processing of mesh data using GIS polygon boundaries with automatic data quality assessment
+- **Data Quality Control**: Coverage analysis, missing data detection, and mesh validation for reliable results
+- **Modular Architecture**: Extensible framework for adding new metrics and environmental factors
+- **Robust Mesh Handling**: Proper handling of non-watertight meshes with appropriate NaN returns for volume-dependent metrics
 
 ## Installation
 
+### Basic Installation
+```bash
+pip install coral-complexity-metrics
 ```
-git clone https://github.com/open-AIMS/coral-complexity-metrics.git
-cd coral-complexity-metrics/
-pip install .
+
+### Full Installation (Recommended)
+```bash
+pip install coral-complexity-metrics[full]
 ```
 
-## Usage
+The full installation includes all optional dependencies for complete functionality:
+- PyVista (3D mesh processing)
+- SciPy (spatial algorithms)
+- Scikit-learn (complexity metrics)
+- GeoPandas/Shapely (shapefile processing)
+- Matplotlib (visualization)
 
-### Utility Functions
+## Quick Start
 
-#### Crop Meshes
-
-The `crop_mesh_to_segments` function allows users to crop a mesh file to the segments contained in a shapefile. The function will output a cropped mesh per segment to the output directory provided.
-
-**NOTE**: The output meshes of this function should be reviewed before they are used to calulate complexity metrics.
-
+### Basic Mesh Analysis
 ```python
-from coral_complexity_metrics.utils import crop_mesh_to_segments
+import coral_complexity_metrics as ccm
 
-ply_file = "path/to/mesh/file"
-shp_file = "path/to/shape/file"
-output_dir = "output/directory"
+# Load and analyze a mesh
+shading = ccm.Shading()
+shading.load_mesh('reef_mesh.ply')
 
-crop_mesh_to_segments(
-    ply_file, # input mesh file
-    shp_file, # input shape file
-    output_dir # output directory to store cropped mesh files
-    )
+# Calculate shading metrics
+result = shading.calculate(
+    time_of_day=12.0,
+    day_of_year=180,
+    latitude=-16.3,
+    longitude=145.8
+)
+
+print(f"Shaded area: {result['shaded_percentage']:.1f}%")
 ```
 
-### Shading
-
-The `Shading` class takes in a mesh `.ply` or `.obj` file as input and calculates shaded percentage and illuminated percentage. It uses code written by Srikanth Samy and published in [this repository.](https://github.com/FlyingPotato437/srikanth_coral_shading_script)
-
+### Shapefile-Based Processing
 ```python
-from coral_complexity_metrics import Shading
+# Process multiple regions defined by shapefile
+processor = ccm.mesh.ShapefileMeshProcessor()
 
-sh = Shading()
-
-# calculate shading metric for a single mesh file
-sh.load_mesh("path/to/mesh/file")
-sh.calculate()
-
-# process an entire directory of mesh files
-sh.process_directory(
-    "path/to/input/folder", 
-    csv_file="shading_results.csv" # Optionally provide an output csv to save the results
-    )
+results = processor.process_mesh_with_shapefile(
+    mesh_path='reef_mesh.ply',
+    shapefile_path='analysis_regions.shp',
+    output_csv='results.csv',
+    metrics=['surface_area', 'rugosity', 'height_range']
+)
 ```
 
-### Colony Geometric Measures
-
-The `GeometricMeasures` class computes geometric measures of a given mesh. It has been validated for individual coral colonies, but can also be used on entire plots if the mesh can be closed to compute volume. By default the scipt only closes holes below a size of 1000 (where size is defined as the number of edges composing the hole boundary), but this can be changed by specifying the `max_hole_size` argument. This function takes a mesh `.ply` or `.obj` as input and returns the following geometric calculations:
-
-* `File_Path` : File path to the original input mesh. Identifies each coral in the file
-* `Vol`: Volume of first mesh (the coral)
-* `CVH_Vol`: Volume of minimum bounding convex hull enclosing original mesh
-* `ASR`: Absolute spatial refuge. Volumetric measure of shelter capacity (interstitial space) of the object. Calculation : CVH_Vol - Vol = ASR
-* `PrOcc`: Proportion Occupied. Proportion of the convex hull occupied by the coral lying inside it. Measures compactness. Calculation: Vol / CVH_Vol = PrOcc
-* `Surface_Area`: 3D surface area of input colony (not the convex hull)
-* `SSF`: Shelter size factor. Ratio of ASR to 3D surface area. Measure of size structure of refuges. Calculation: ASR / Surface_area = SSF
-* `Diameter`: Maximum colony diameter (length along x axis which is by default the longest horizontal axis in meshlab)
-* `Height`: Colony height (length along Z-axis of bounding box) 
-
-Please also note:
-* *Max hole size is defined as the number of edges composing the hole boundary*
-* *Transformations must be carried out by the user to get to square and cubic cm*
-* *Models must have been scaled in the software you used to create them for this code to work*
-
-This class uses code originally written by Eoghan Aston, repository [here](https://github.com/E-Aston/CoralGeometry) and paper [here](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.854395/full).
-
+### Individual Metrics
 ```python
-from coral_complexity_metrics import GeometricMeasures
+# Calculate specific metrics
+from coral_complexity_metrics.mesh.unified_metrics import (
+    SurfaceRugosity, HeightRange, FractalDimension
+)
 
-gm = GeometricMeasures()
+# Load mesh data
+mesh_data = ccm.mesh.prepare_mesh_data_for_metrics(mesh)
 
-# calculate geometric measures for a single mesh file
-gm.load_mesh("path/to/mesh/file")
-gm.calculate(
-    "max_hole_size"=1500 # OPTIONAL: the maximum number of edges composing the hole boundary
-    )
-
-# process an entire directory of mesh files
-gm.process_directory(
-    "path/to/input/folder", 
-    csv_file="geometric_results.csv" # Optionally provide an output csv to save the results
-    )
+# Calculate metrics
+rugosity = SurfaceRugosity().calculate(mesh_data)
+height_stats = HeightRange().calculate(mesh_data)
+fractal_dim = FractalDimension().calculate(mesh_data)
 ```
 
-### Quadrat Metrics 
+## Available Metrics
 
-The `QuadratMetrics` class takes an `.obj` or `.ply` mesh file, dimensions of the input file, and size of quadrats as input. It calculates the following metrics for each quadrant:
-* `quadrat_size_m`: The size of the fitted quadrats
-* `quadrat_rel_x`: The relative x coordinates of the quadrat
-* `quadrat_rel_y`: The relative y coordinates of the quadrat
-* `quadrat_rel_z_mean`: The average of the relative z coordinates of the quadrat
-* `quadrat_rel_z_sd`: The standard deviation of the relative z coordinates of the quadrat
-* `quadrat_abs_x`: The absolute x coordinates of the quadrat
-* `quadrat_abs_y`: The absolute x coordinates of the quadrat
-* `quadrat_abs_z`: The absolute x coordinates of the quadrat
-* `num_faces`: The number of faces in the quadrat
-* `num_vertices`: The number of vertices in the quadrat
-* `3d_surface_area`: The area of the faces in the quadrat
-* `2d_surface_area`: The area of the faces in the quadrat without the Z component
-* `surface_rugosity`: Surface rugosity is calculated as 3d_surface_area/2d_surface_area
+### Surface Metrics
+- Surface Area (3D)
+- Surface Rugosity
+- Projected Area (2D)
+- Mesh Counts (faces/vertices)
 
-This class uses code forked from [this repository.](https://github.com/shawes/mesh3d-python)
+### Volume Metrics (Watertight Meshes Only)
+- Volume
+- Convex Hull Volume
+- Proportion Occupied
+- Absolute Spatial Refuge
+- Shelter Size Factor
 
-**NOTE:** *If a `.ply` file is used it is first converted to an `.obj` file and saved in the same directory.*
+### Complexity Metrics
+- Fractal Dimension (box-counting)
+- Slope Statistics
+- Height Range and Distribution
+- Plane of Best Fit
 
-```python
-from coral_complexity_metrics import QuadratMetrics
+### Spatial Metrics
+- Diameter (max XY extent)
+- Height (Z range)
+- Quadrat Positioning
+- Coverage Quality
 
-qm = QuadratMetrics(
-    dim="XYZ", # the dimensions of the input files WLH (width-length-height). Either "XYZ", "XZY" or "ZYX".
-    size=1 # the size of a quadrat (standard is metres, but depends on the units in the underlying mesh file)
-    )
+## Data Quality Assessment
 
-# calculate quadrat metrics for a single mesh file
-qm.load_mesh("path/to/mesh/file")
-qm.calculate()
+Every analysis includes comprehensive quality metrics:
 
-# process an entire directory of mesh files
-qm.process_directory(
-    "path/to/input/folder", 
-    csv_file="quadrat_results.csv" # Optionally provide an output csv to save the results
-    )
+- **Coverage Percentage**: Portion of analysis region covered by mesh data
+- **Missing Data Percentage**: Areas with no mesh coverage
+- **Data Quality Score**: Overall quality rating (0-1 scale)
+- **Point Density**: Mesh resolution within analysis areas
+
+## Architecture
+
+### Modular Design
+- **Base Classes**: Abstract interfaces for extensible metric development
+- **Metric Registry**: Automatic discovery and categorization of available metrics
+- **Optional Dependencies**: Graceful fallbacks when specialized libraries unavailable
+- **Type Safety**: Full type hints and validation throughout
+
+### Supported Data Formats
+- PLY (Stanford Polygon format)
+- STL (STereoLithography)
+- OBJ (Wavefront)
+- VTK/VTP (Visualization Toolkit)
+
+## Scientific Applications
+
+EcoRRAP supports research in:
+- Coral reef biodiversity assessment
+- Habitat complexity quantification
+- Climate change impact studies
+- Restoration monitoring
+- Fisheries habitat evaluation
+
+## Contributing
+
+We welcome contributions! Please see our development guidelines:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+## Citation
+
+When using EcoRRAP in scientific publications, please cite:
 
 ```
-
-## Contact
-
-Hannah White (Data Scientist) - ha.white@aims.gov.au
-
-Renata Ferrari Legorreta (Ecological Risk Modeller) - r.ferrarilegorreta@aims.gov.au 
-
-## Acknowledgements
-
-* Srikanth Samy: https://github.com/FlyingPotato437/srikanth_coral_shading_script
-* Eoghan Aston: https://github.com/E-Aston/CoralGeometry
-* Steven Hawes: https://github.com/shawes/mesh3d-python
+EcoRRAP: Enhanced Coral Reef Complexity Metrics Package
+Version 2.0.0
+https://github.com/your-org/coral-complexity-metrics
+```
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Australian Institute of Marine Science (AIMS)
+- University of Sydney Geosciences
+- Coral reef research community
+
+## Support
+
+For questions, bug reports, or feature requests:
+- GitHub Issues: https://github.com/your-org/coral-complexity-metrics/issues
+- Documentation: https://coral-complexity-metrics.readthedocs.io
+- Email: support@ecorap.org

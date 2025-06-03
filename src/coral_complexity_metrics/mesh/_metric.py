@@ -5,10 +5,26 @@ from abc import ABC, abstractmethod
 import warnings
 import logging
 
-import pyvista as pv
-from scipy.stats import kurtosis, skew
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+# Optional imports - handle gracefully if not available
+try:
+    import pyvista as pv
+    _PYVISTA_AVAILABLE = True
+except ImportError:
+    _PYVISTA_AVAILABLE = False
+    pv = None
+
+try:
+    from scipy.stats import kurtosis, skew
+    _SCIPY_AVAILABLE = True
+except ImportError:
+    _SCIPY_AVAILABLE = False
+
+try:
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+    _SKLEARN_AVAILABLE = True
+except ImportError:
+    _SKLEARN_AVAILABLE = False
 
 from .mesh_utils import calculate_projected_area_convex_hull, calculate_bounding_box_area
 
@@ -540,3 +556,49 @@ class Metric(object):
         if self.area2d == 0:
             return float('nan')
         return float(self.area3d) / float(self.area2d)
+
+
+# Auto-register unified metrics when module is imported
+def register_unified_metrics():
+    """Register all unified metrics with the global registry."""
+    try:
+        from .unified_metrics import (
+            Watertight, Volume, SurfaceArea, ConvexHullVolume, 
+            ProportionOccupied, AbsoluteSpatialRefuge, ShelterSizeFactor,
+            Diameter, Height, QuadratMetrics, MeshCounts, SurfaceRugosity,
+            Slope, PlaneOfBestFit, HeightRange, FractalDimension, ShadingPercentage
+        )
+        
+        unified_metrics = [
+            Watertight(),
+            Volume(),
+            SurfaceArea(),
+            ConvexHullVolume(),
+            ProportionOccupied(),
+            AbsoluteSpatialRefuge(),
+            ShelterSizeFactor(),
+            Diameter(),
+            Height(),
+            QuadratMetrics(),
+            MeshCounts(),
+            SurfaceRugosity(),
+            Slope(),
+            PlaneOfBestFit(),
+            HeightRange(),
+            FractalDimension(),
+            ShadingPercentage()
+        ]
+        
+        for metric in unified_metrics:
+            register_metric(metric)
+            
+        logger.info(f"Registered {len(unified_metrics)} unified metrics")
+        
+    except ImportError as e:
+        logger.warning(f"Could not import unified metrics: {e}")
+    except Exception as e:
+        logger.error(f"Failed to register unified metrics: {e}")
+
+
+# Auto-register unified metrics when module is imported
+register_unified_metrics()

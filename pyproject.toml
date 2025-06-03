@@ -1,117 +1,102 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "coral_complexity_metrics"
-version = "0.1.0"
-authors = [
-  { name="Hannah White", email="ha.white@aims.gov.au" },
-]
-description = "A comprehensive Python package for estimating coral complexity metrics with enhanced shading analysis"
+name = "coral-complexity-metrics"
+description = "Enhanced Coral Reef Complexity Metrics Package"
 readme = "README.md"
-requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "EcoRRAP Development Team", email = "support@ecorap.org"},
+]
+maintainers = [
+    {name = "Hannah White", email = "ha.white@aims.gov.au"},
+]
+keywords = [
+    "coral-reef",
+    "complexity-metrics",
+    "3d-analysis",
+    "marine-science",
+    "photogrammetry",
+    "mesh-processing"
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Scientific/Engineering :: Visualization",
-    "Operating System :: OS Independent",
 ]
-license = {file = "LICENSE"}
-keywords = ["coral", "complexity", "3D", "shading", "marine-biology", "photogrammetry"]
-
+requires-python = ">=3.8"
 dependencies = [
-    "numpy>=1.20.0",
-    "scipy>=1.7.0",
-    "pandas>=1.3.0",
-    "matplotlib>=3.4.0",
-    "seaborn>=0.11.0",
-    "scikit-learn>=1.0.0",
-    "tqdm>=4.60.0",
-    "pyvista>=0.37.0",
-    "pymeshlab>=2022.2",
-    "geopandas>=0.10.0",
-    "shapely>=1.8.0",
+    "numpy>=1.19.0",
+    "typing-extensions>=4.0.0; python_version<'3.10'",
 ]
+dynamic = ["version"]
 
 [project.optional-dependencies]
+mesh = [
+    "pyvista>=0.40.0",
+    "vtk>=9.0.0",
+]
+spatial = [
+    "scipy>=1.7.0",
+    "scikit-learn>=1.0.0",
+]
+gis = [
+    "geopandas>=0.10.0",
+    "shapely>=1.8.0",
+    "fiona>=1.8.0",
+]
+visualization = [
+    "matplotlib>=3.5.0",
+    "seaborn>=0.11.0",
+]
+validation = [
+    "pandas>=1.3.0",
+]
+full = [
+    "coral-complexity-metrics[mesh,spatial,gis,visualization,validation]",
+]
 dev = [
-    "pytest>=6.0",
-    "pytest-cov>=3.0",
-    "black>=22.0",
-    "flake8>=4.0",
+    "coral-complexity-metrics[full]",
+    "pytest>=6.0.0",
+    "pytest-cov>=3.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
     "mypy>=0.900",
-    "pre-commit>=2.15",
-]
-docs = [
-    "sphinx>=4.0",
-    "sphinx-rtd-theme>=1.0",
-    "numpydoc>=1.4",
-    "sphinx-gallery>=0.10",
-]
-viz = [
-    "plotly>=5.0",
-    "ipywidgets>=7.6",
-    "jupyter>=1.0",
+    "sphinx>=4.0.0",
+    "sphinx-rtd-theme>=1.0.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/aims-ks/coral-complexity-metrics"
-Repository = "https://github.com/aims-ks/coral-complexity-metrics"
+Homepage = "https://github.com/open-AIMS/coral-complexity-metrics"
 Documentation = "https://coral-complexity-metrics.readthedocs.io"
-Issues = "https://github.com/aims-ks/coral-complexity-metrics/issues"
+Repository = "https://github.com/open-AIMS/coral-complexity-metrics.git"
+"Bug Tracker" = "https://github.com/open-AIMS/coral-complexity-metrics/issues"
+Changelog = "https://github.com/open-AIMS/coral-complexity-metrics/blob/main/CHANGELOG.md"
 
-[project.scripts]
-coral-metrics = "coral_complexity_metrics.cli:main"
+[tool.setuptools_scm]
+write_to = "src/coral_complexity_metrics/_version.py"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q --strict-markers"
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "requires_data: marks tests that require external data files",
-]
-
-[tool.coverage.run]
-source = ["src/coral_complexity_metrics"]
-omit = [
-    "*/tests/*",
-    "*/test_*.py",
-    "*/__init__.py",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
+[tool.setuptools.package-data]
+"coral_complexity_metrics" = ["py.typed"]
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py38', 'py39', 'py310', 'py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -126,6 +111,11 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
 
 [tool.mypy]
 python_version = "3.8"
@@ -145,11 +135,42 @@ strict_equality = true
 [[tool.mypy.overrides]]
 module = [
     "pyvista.*",
-    "pymeshlab.*",
-    "tqdm.*",
-    "sklearn.*",
-    "scipy.*",
+    "vtk.*",
     "geopandas.*",
     "shapely.*",
+    "scipy.*",
+    "sklearn.*",
 ]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/_version.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

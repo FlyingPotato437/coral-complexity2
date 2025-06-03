@@ -247,7 +247,7 @@ def demo_mesh_validation():
     print("="*60)
     
     if not ccm.HAS_MESH_VALIDATION:
-        print("⚠ Mesh validation not available (PyMeshLab not installed)")
+        print("WARNING: Mesh validation not available (PyMeshLab not installed)")
         return None
     
     # Create demonstration mesh
@@ -287,7 +287,7 @@ def demo_shading_validation():
     print("="*60)
     
     if not ccm.HAS_SHADING_VALIDATION:
-        print("⚠ Shading validation not available (dependencies not installed)")
+        print("WARNING: Shading validation not available (dependencies not installed)")
         return None
     
     # Create synthetic light logger data
@@ -368,7 +368,7 @@ def demo_visualization():
     print("="*60)
     
     if not ccm.HAS_VISUALIZATION:
-        print("⚠ Visualization not available (dependencies not installed)")
+        print("WARNING: Visualization not available (dependencies not installed)")
         return None
     
     # Create demonstration mesh
@@ -425,8 +425,8 @@ def main():
     info = ccm.get_info()
     print("\nFeature availability:")
     for feature, available in info['features'].items():
-        status = "✓" if available else "✗"
-        print(f"  {status} {feature}")
+        status = "AVAILABLE" if available else "NOT AVAILABLE"
+        print(f"  {status}: {feature}")
     
     try:
         # Run demonstrations
@@ -442,13 +442,13 @@ def main():
         print("="*60)
         print("All enhanced features have been successfully demonstrated!")
         print("\nKey improvements implemented:")
-        print("  ✓ Enhanced shading with parametric environmental inputs")
-        print("  ✓ Comprehensive metric registration system")
-        print("  ✓ Pure Python/NumPy complexity metrics")
-        print("  ✓ Automated mesh validation and repair")
-        print("  ✓ Light logger data comparison and validation")
-        print("  ✓ HTML/PNG preview generation with quality control")
-        print("  ✓ Comprehensive CI testing and regression protection")
+        print("  [PASS] Enhanced shading with parametric environmental inputs")
+        print("  [PASS] Comprehensive metric registration system")
+        print("  [PASS] Pure Python/NumPy complexity metrics")
+        print("  [PASS] Automated mesh validation and repair")
+        print("  [PASS] Light logger data comparison and validation")
+        print("  [PASS] HTML/PNG preview generation with quality control")
+        print("  [PASS] Comprehensive CI testing and regression protection")
         
         print(f"\nThe package is now publish-ready with version {ccm.__version__}!")
         
