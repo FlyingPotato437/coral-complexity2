@@ -156,8 +156,9 @@ def validate_and_repair_mesh(*args, **kwargs):
 
 # Legacy compatibility
 try:
-    from .mesh.quadrat_metrics import quadrat_metrics_on_mesh
     from .mesh.complexity_metrics import *
+    from .mesh.geometric_measures import GeometricMeasures
+    from .mesh.quadrat_metrics import QuadratMetrics
     from .mesh.geometric_measures import *
 except ImportError:
     pass  # These will be handled by the placeholder functions
@@ -173,4 +174,5 @@ __all__ = [
     # Convenience functions
     'list_available_metrics', 'get_available_metrics',
     'process_mesh_with_shapefile', 'validate_and_repair_mesh',
+    'GeometricMeasures', 'QuadratMetrics',
 ]
