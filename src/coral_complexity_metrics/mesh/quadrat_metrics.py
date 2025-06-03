@@ -1,8 +1,12 @@
-from ._internal._dimension_order import DimensionOrder
-from ._internal._quadrat_builder import QuadratBuilder
-from ._internal._quadrilateral import Quadrilateral
-from ._internal._vertex import Vertex
-from ._internal._mesh_io import read_obj
+# The helper modules originally lived in a separate ``_internal`` package.  In
+# this trimmed-down version they sit directly under ``mesh``.  Import them
+# directly so that this module works regardless of whether ``_internal`` exists
+# as a real subpackage.
+from ._dimension_order import DimensionOrder
+from ._quadrat_builder import QuadratBuilder
+from ._quadrilateral import Quadrilateral
+from ._vertex import Vertex
+from ._mesh_io import read_obj
 from tqdm import tqdm
 import sys
 import os

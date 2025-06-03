@@ -25,7 +25,7 @@ from .shading_modules import *
 # Optional imports - these require heavy dependencies
 try:
     from .mesh_validator import MeshValidator, MeshValidationResult, batch_validate_meshes
-    from .quadrat_metrics import quadrat_metrics_on_mesh
+    from .quadrat_metrics import QuadratMetrics
     from .complexity_metrics import *
     from .geometric_measures import *
     
@@ -45,7 +45,6 @@ except ImportError as e:
     MeshValidator = _missing_dependency_warning("MeshValidator")
     MeshValidationResult = _missing_dependency_warning("MeshValidationResult") 
     batch_validate_meshes = _missing_dependency_warning("batch_validate_meshes")
-    quadrat_metrics_on_mesh = _missing_dependency_warning("quadrat_metrics_on_mesh")
     
     # Set availability flags
     _VALIDATION_AVAILABLE = False
@@ -108,5 +107,4 @@ __all__ = [
     
     # Legacy components
     'GeometricMeasures', 'LegacyQuadratMetrics',
-    'quadrat_metrics_on_mesh',
 ]

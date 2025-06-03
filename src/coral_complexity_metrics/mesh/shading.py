@@ -8,7 +8,10 @@ from typing import Optional, Tuple, Dict, Any, Union
 import warnings
 from datetime import datetime
 import math
-from ._internal._shading_utils import AABB, BVHNode
+# ``AABB`` and ``BVHNode`` utilities live next to this module. Historically
+# they were accessed via ``_internal`` but the subpackage no longer contains
+# separate modules. Import directly to avoid failing lookups.
+from ._shading_utils import AABB, BVHNode
 
 
 class Shading:
@@ -520,12 +523,13 @@ class Shading:
                     (chunk, bvh_root, triangles, indices, light_dir) for chunk in chunks])
         
         shadowed = np.concatenate(results)
-        shaded_percentage = np.mean(shadowed) * 100
+        shaded_percentage_value = np.mean(shadowed) * 100
 
+        # Format percentages to two decimal places for user-facing results.
         result = {
             'mesh_file': self.mesh_file,
-            'shaded_percentage': shaded_percentage,
-            'illuminated_percentage': 100 - shaded_percentage,
+            'shaded_percentage': f"{shaded_percentage_value:.2f}%",
+            'illuminated_percentage': f"{100 - shaded_percentage_value:.2f}%",
             'sample_points': len(sampled_points),
             'cpu_cores_used': self.cpu_limit,
             'parameters': {
@@ -542,7 +546,7 @@ class Shading:
         }
 
         if verbose:
-            print(f"Shading calculation complete: {shaded_percentage:.2f}% shaded")
+            print(f"Shading calculation complete: {shaded_percentage_value:.2f}% shaded")
 
         return result
 
