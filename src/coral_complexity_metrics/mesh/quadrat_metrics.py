@@ -1,8 +1,8 @@
-from ._internal._dimension_order import DimensionOrder
-from ._internal._quadrat_builder import QuadratBuilder
-from ._internal._quadrilateral import Quadrilateral
-from ._internal._vertex import Vertex
-from ._internal._mesh_io import read_obj
+from ._dimension_order import DimensionOrder
+from ._quadrat_builder import QuadratBuilder
+from ._quadrilateral import Quadrilateral
+from ._vertex import Vertex
+from ._mesh_io import read_obj
 from tqdm import tqdm
 import sys
 import os

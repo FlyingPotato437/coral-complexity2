@@ -8,7 +8,7 @@ from typing import Optional, Tuple, Dict, Any, Union
 import warnings
 from datetime import datetime
 import math
-from ._internal._shading_utils import AABB, BVHNode
+from ._shading_utils import AABB, BVHNode
 
 
 class Shading:
