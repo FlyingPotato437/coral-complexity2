@@ -466,3 +466,329 @@ def register_complexity_metrics():
 
 # Auto-register when module is imported
 register_complexity_metrics() 
+
+
+# AIMS-Compatible ComplexityMetrics Class for Backward Compatibility
+class ComplexityMetrics:
+    """
+    AIMS-compatible ComplexityMetrics class that provides the original interface
+    while leveraging enhanced EcoRRAP functionality under the hood.
+    
+    This class maintains backward compatibility with the original AIMS package
+    while providing access to enhanced features and improved performance.
+    """
+    
+    def __init__(self):
+        """Initialize the ComplexityMetrics class with default values."""
+        self.mesh_file = None
+        self.mesh = None
+        
+    def load_mesh(self, file, verbose=True):
+        """
+        Load a 3D mesh from the specified file.
+        
+        Parameters:
+        file (str): Path to the 3D model file.
+        verbose (bool): Whether to print loading information.
+        """
+        import os
+        import time
+        
+        self.mesh_file = file
+        if not os.path.exists(file):
+            if verbose:
+                print(f"3D model file not found: {file}")
+            self.mesh = None
+            return
+        
+        if verbose:
+            print(f"Loading mesh from {file}...")
+            
+        start_time = time.time()
+        
+        try:
+            # Use PyVista for enhanced mesh loading
+            import pyvista as pv
+            self.mesh = pv.read(file)
+            
+            if verbose:
+                end_time = time.time()
+                print("Mesh loaded in {:.2f} seconds".format(end_time - start_time))
+                print(f"Number of points: {self.mesh.n_points}")
+                print(f"Number of faces: {self.mesh.n_cells}")
+                
+        except Exception as e:
+            if verbose:
+                print(f"Failed to load mesh: {e}")
+            self.mesh = None
+            
+    def calculate(self, mesh_file, shading_metrics=True, shading_light_dir=None, 
+                 shading_sample_size=1000000, quadrat_metrics=False, 
+                 quadrat_sizes=[1], verbose=True):
+        """
+        Calculate complexity measures of the mesh using enhanced EcoRRAP functionality.
+        
+        Parameters:
+        mesh_file (str): Path to the 3D model file.
+        shading_metrics (bool): Whether to apply shading to the mesh.
+        shading_light_dir (np.array): Direction of the light source for shading.
+        shading_sample_size (int): Number of samples for shading calculation.
+        quadrat_metrics (bool): Whether to calculate quadrat metrics.
+        quadrat_sizes (list): List of quadrat sizes to use for quadrat metrics.
+        verbose (bool): Whether to print progress messages.
+        
+        Returns:
+        dict: Dictionary containing various complexity measures of the mesh.
+        """
+        import os
+        import numpy as np
+        from .geometric_measures import GeometricMeasures
+        from .shading import Shading
+        from .quadrat_metrics import QuadratMetrics
+        
+        if not os.path.exists(mesh_file):
+            if verbose:
+                print(f"3D model file not found: {mesh_file}")
+            return None
+            
+        # Load mesh if not already loaded
+        if self.mesh is None or self.mesh_file != mesh_file:
+            self.load_mesh(mesh_file, verbose=verbose)
+            
+        if self.mesh is None:
+            return None
+            
+        if verbose:
+            print("Calculating complexity measures for mesh...")
+            
+        # Calculate basic geometric measures directly
+        try:
+            # Basic mesh properties
+            surface_area = float(self.mesh.area) if hasattr(self.mesh, 'area') else np.nan
+            
+            # Check if mesh is watertight
+            is_watertight = self.mesh.is_manifold if hasattr(self.mesh, 'is_manifold') else False
+            
+            # Volume calculation (only for watertight meshes)
+            volume = np.nan
+            if is_watertight:
+                try:
+                    volume = float(self.mesh.volume) if hasattr(self.mesh, 'volume') else np.nan
+                except:
+                    volume = np.nan
+                    is_watertight = False
+            
+            # Convex hull calculations
+            try:
+                convex_hull = self.mesh.convex_hull()
+                cvh_volume = float(convex_hull.volume) if hasattr(convex_hull, 'volume') else np.nan
+            except:
+                cvh_volume = np.nan
+            
+            # 2D projected area calculation
+            points = self.mesh.points
+            if len(points) > 0:
+                # Project to XY plane and calculate area
+                points_2d = points[:, :2]  # Take only X and Y coordinates
+                try:
+                    from scipy.spatial import ConvexHull
+                    hull_2d = ConvexHull(points_2d)
+                    projected_area = hull_2d.volume  # In 2D, volume is area
+                except:
+                    # Fallback: bounding box area
+                    min_xy = np.min(points_2d, axis=0)
+                    max_xy = np.max(points_2d, axis=0)
+                    projected_area = (max_xy[0] - min_xy[0]) * (max_xy[1] - min_xy[1])
+            else:
+                projected_area = np.nan
+            
+            # Calculate derived metrics
+            asr = cvh_volume - volume if not np.isnan(cvh_volume) and not np.isnan(volume) else np.nan
+            proportion_occupied = volume / cvh_volume if not np.isnan(cvh_volume) and not np.isnan(volume) and cvh_volume > 0 else np.nan
+            ssf = asr / surface_area if not np.isnan(asr) and not np.isnan(surface_area) and surface_area > 0 else np.nan
+            
+            geom_results = {
+                'surface_area': surface_area,
+                'projected_area': projected_area,
+                'volume': volume,
+                'CVH_volume': cvh_volume,
+                'ASR': asr,
+                'proportion_occupied': proportion_occupied,
+                'SSF': ssf,
+                'is_watertight': is_watertight
+            }
+            
+        except Exception as e:
+            if verbose:
+                print(f"Error in geometric calculations: {e}")
+            geom_results = {}
+        
+        # Prepare basic plot metrics in AIMS format
+        plot_metrics = {
+            'mesh_file': mesh_file,
+            'is_watertight': geom_results.get('is_watertight', False),
+            'num_faces': self.mesh.n_cells,
+            'num_vertices': self.mesh.n_points,
+            '3d_surface_area': geom_results.get('surface_area', np.nan),
+            '2d_surface_area': geom_results.get('projected_area', np.nan),
+            'volume': geom_results.get('volume', np.nan),
+            'convex_hull_volume': geom_results.get('CVH_volume', np.nan),
+            'absolute_spatial_refuge': geom_results.get('ASR', np.nan),
+            'proportion_occupied': geom_results.get('proportion_occupied', np.nan),
+            'shelter_size_factor': geom_results.get('SSF', np.nan),
+            'surface_rugosity': geom_results.get('surface_area', np.nan) / geom_results.get('projected_area', 1) if geom_results.get('projected_area', 0) > 0 else np.nan,
+        }
+        
+        # Enhanced shading calculations
+        if shading_metrics:
+            try:
+                shading = Shading(cpu_percentage=80.0)  # Use enhanced shading
+                shading.mesh = self.mesh
+                shading.mesh_file = mesh_file
+                
+                # Use default light direction if not provided
+                if shading_light_dir is None:
+                    shading_light_dir = np.array([0, 0, -1])
+                
+                shading_result = shading.calculate(
+                    light_dir=shading_light_dir,
+                    sample_size=shading_sample_size,
+                    verbose=verbose
+                )
+                
+                plot_metrics['shaded_percentage'] = shading_result.get('shaded_percentage', np.nan)
+                plot_metrics['illuminated_percentage'] = shading_result.get('illuminated_percentage', np.nan)
+                
+            except Exception as e:
+                if verbose:
+                    print(f"Error in shading calculations: {e}")
+                plot_metrics['shaded_percentage'] = np.nan
+                plot_metrics['illuminated_percentage'] = np.nan
+        
+        result = {'plot_metrics': plot_metrics}
+        
+        # Quadrat metrics if requested
+        if quadrat_metrics:
+            try:
+                quadrat_calc = QuadratMetrics()
+                quadrat_calc.mesh = self.mesh
+                quadrat_calc.mesh_file = mesh_file
+                
+                quadrat_results = []
+                for size in quadrat_sizes:
+                    quadrat_data = quadrat_calc.calculate(quadrat_size=size)
+                    if quadrat_data and 'quadrats' in quadrat_data:
+                        for quad in quadrat_data['quadrats']:
+                            quad_metrics = {
+                                'mesh_file': mesh_file,
+                                'quadrat_size': size,
+                                'quadrat_x_id': quad.get('x_id', 0),
+                                'quadrat_y_id': quad.get('y_id', 0),
+                                'quadrat_x_min': quad.get('x_min', np.nan),
+                                'quadrat_x_max': quad.get('x_max', np.nan),
+                                'quadrat_y_min': quad.get('y_min', np.nan),
+                                'quadrat_y_max': quad.get('y_max', np.nan),
+                                'quadrat_x_center': quad.get('x_center', np.nan),
+                                'quadrat_y_center': quad.get('y_center', np.nan),
+                                # Copy over the main metrics
+                                **{k: v for k, v in quad.items() if k not in ['x_id', 'y_id', 'x_min', 'x_max', 'y_min', 'y_max', 'x_center', 'y_center']}
+                            }
+                            quadrat_results.append(quad_metrics)
+                
+                result['quadrat_metrics'] = quadrat_results
+                
+            except Exception as e:
+                if verbose:
+                    print(f"Error in quadrat calculations: {e}")
+                result['quadrat_metrics'] = []
+        
+        return result
+    
+    def process_directory(self, directory, shading_metrics=True, shading_light_dir=None, 
+                         shading_sample_size=1000000, quadrat_metrics=False, 
+                         quadrat_sizes=[1], verbose=False, save_results=True, save_dir='.'):
+        """
+        Process all mesh files in the specified directory using enhanced functionality.
+        
+        Parameters:
+        directory (str): Path to the directory containing 3D model files.
+        shading_metrics (bool): Whether to apply shading to the mesh.
+        shading_light_dir (np.array): Direction of the light source for shading.
+        shading_sample_size (int): Number of samples for shading calculation.
+        quadrat_metrics (bool): Whether to calculate quadrat metrics.
+        quadrat_sizes (list): List of quadrat sizes to use for quadrat metrics.
+        verbose (bool): Whether to print progress messages.
+        save_results (bool): Whether to save the results to CSV files.
+        save_dir (str): Directory to save the CSV files.
+        
+        Returns:
+        list: List of dictionaries containing complexity measures of each mesh.
+        """
+        import os
+        import pandas as pd
+        from tqdm import tqdm
+        import numpy as np
+        
+        if not os.path.exists(directory):
+            print(f"Directory not found: {directory}")
+            return []
+        
+        mesh_files = [file for file in os.listdir(directory) 
+                     if file.lower().endswith((".obj", ".ply", ".stl", ".vtk"))]
+        
+        if not mesh_files:
+            print(f"No supported mesh files found in {directory}")
+            return []
+        
+        results = []
+        
+        # Use default light direction if not provided
+        if shading_light_dir is None:
+            shading_light_dir = np.array([0, 0, -1])
+        
+        for mesh_file in tqdm(mesh_files, desc="Processing 3D models", disable=not verbose):
+            try:
+                result = self.calculate(
+                    mesh_file=os.path.join(directory, mesh_file),
+                    shading_metrics=shading_metrics,
+                    shading_light_dir=shading_light_dir,
+                    shading_sample_size=shading_sample_size,
+                    quadrat_metrics=quadrat_metrics,
+                    quadrat_sizes=quadrat_sizes,
+                    verbose=False  # Suppress individual file verbose output
+                )
+                if result:
+                    results.append(result)
+            except Exception as e:
+                if verbose:
+                    print(f"Error processing {mesh_file}: {e}")
+                continue
+        
+        # Save results if requested
+        if save_results and results:
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+                
+            # Plot-level metrics
+            plot_data = [r['plot_metrics'] for r in results if 'plot_metrics' in r]
+            if plot_data:
+                plot_df = pd.DataFrame(plot_data)
+                plot_path = os.path.join(save_dir, "plot_complexity_metrics.csv")
+                plot_df.to_csv(plot_path, index=False)
+                if verbose:
+                    print(f"Plot metrics saved to {plot_path}")
+            
+            # Quadrat-level metrics
+            quadrat_data = []
+            for r in results:
+                if 'quadrat_metrics' in r and r['quadrat_metrics']:
+                    quadrat_data.extend(r['quadrat_metrics'])
+            
+            if quadrat_data:
+                quadrat_df = pd.DataFrame(quadrat_data)
+                quadrat_path = os.path.join(save_dir, "quadrat_complexity_metrics.csv")
+                quadrat_df.to_csv(quadrat_path, index=False)
+                if verbose:
+                    print(f"Quadrat metrics saved to {quadrat_path}")
+        
+        return results

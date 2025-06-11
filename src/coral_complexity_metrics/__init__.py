@@ -164,6 +164,15 @@ except ImportError as e:
     print(f"Warning: Could not import test classes: {e}")
     _TEST_CLASSES_AVAILABLE = False
 
+# Import AIMS-compatible ComplexityMetrics class for backward compatibility
+try:
+    from .mesh.complexity_metrics import ComplexityMetrics
+    _COMPLEXITY_CLASS_AVAILABLE = True
+except ImportError:
+    def ComplexityMetrics(*args, **kwargs):
+        raise ImportError("ComplexityMetrics requires additional dependencies")
+    _COMPLEXITY_CLASS_AVAILABLE = False
+
 # Export main functionality
 __all__ = [
     # Package info
@@ -176,6 +185,6 @@ __all__ = [
     'list_available_metrics', 'get_available_metrics',
     'process_mesh_with_shapefile', 'validate_and_repair_mesh',
     
-    # Test classes
-    'GeometricMeasures', 'QuadratMetrics',
+    # Test classes and AIMS compatibility
+    'GeometricMeasures', 'QuadratMetrics', 'ComplexityMetrics',
 ]
