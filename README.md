@@ -20,7 +20,8 @@ A Python package for calculating structural complexity metrics from 3D coral mes
   - `shaded_percentage`: Percentage of the mesh surface that is shaded, based on simulated light direction. (Not returned if `shading_metrics` argument set to `False`.)
   - `illuminated_percentage`: Percentage of the mesh surface that is illuminated (1 - shaded_percentage). (Not returned if `shading_metrics` argument set to `False`.)
 - Quadrat-based metrics 
-  - The mesh is divided into quadrats of the specified size(s), starting at the centroid of the bounding box around the mesh. 
+  - The mesh is divided into quadrats of the specified size(s), starting at the centroid of the bounding box around the mesh.
+  - Quadrat sizes must be specified in the same coordinate units as the mesh (e.g., if mesh coordinates are in meters, use [1.0, 0.5] for 1m and 0.5m quadrats).
   - For each quadrat, all the above complexity metrics are calculated, plus:
     - `quadrat_size`: The size (length of side) of the quadrat.
     - `quadrat_x_id`, `quadrat_y_id`: Indices of the quadrat in the X and Y directions.
@@ -51,9 +52,9 @@ results = cm.calculate(
     mesh_file="path/to/mesh.obj",          # Path to the 3D model file (.obj or .ply)
     shading_metrics=True,                  # Whether to apply shading calculations (default: True)
     shading_light_dir=np.array([0, 0, -1]),# Direction of the light source for shading (default: np.array([0, 0, -1]))
-    shading_sample_size=1000000,           # Number of samples for shading calculation (default: 1,000,000)
+    shading_sample_size=25000,             # Number of samples for shading calculation (default: 25,000)
     quadrat_metrics=True,                  # Whether to calculate quadrat metrics (default: False)
-    quadrat_sizes=[1, 0.5],                # List of quadrat sizes to use (default: [1])
+    quadrat_sizes=[1, 0.5],                # List of quadrat sizes in mesh units (default: [1])
     verbose=True                           # Print progress messages (default: True)
 )
 print(results)
@@ -66,7 +67,7 @@ Arguments:
 - `shading_light_dir` (np.array): Direction of the light source for shading.
 - `shading_sample_size` (int): Number of samples for shading calculation.
 - `quadrat_metrics` (bool): Whether to calculate quadrat-based metrics.
-- `quadrat_sizes` (list): Quadrat sizes (in the same units as the mesh) for quadrat-based metrics.
+- `quadrat_sizes` (list): Quadrat sizes (in mesh coordinate units) for quadrat-based metrics.
 - `verbose` (bool): Print progress and status messages.
 
 ### Process an Entire Directory
@@ -76,9 +77,9 @@ results = cm.process_directory(
     directory="path/to/mesh_directory",    # Directory containing .obj or .ply files
     shading_metrics=True,                  # Whether to apply shading calculations (default: True)
     shading_light_dir=np.array([0, 0, -1]),# Direction of the light source for shading (default: np.array([0, 0, -1]))
-    shading_sample_size=1000000,           # Number of samples for shading calculation (default: 1,000,000)
+    shading_sample_size=25000,             # Number of samples for shading calculation (default: 25,000)
     quadrat_metrics=True,                  # Whether to calculate quadrat metrics (default: False)
-    quadrat_sizes=[1, 0.5],                # List of quadrat sizes to use (default: [1])
+    quadrat_sizes=[1, 0.5],                # List of quadrat sizes in mesh units (default: [1])
     verbose=True,                          # Print progress messages (default: False)
     save_results=True,                     # Save results to CSV files (default: True)
     save_dir="results"                     # Directory to save CSV files (default: current directory)
@@ -93,7 +94,7 @@ Arguments:
 - `shading_light_dir` (np.array): Direction of the light source for shading.
 - `shading_sample_size` (int): Number of samples for shading calculation.
 - `quadrat_metrics` (bool): Whether to calculate quadrat-based metrics.
-- `quadrat_sizes` (list): Quadrat sizes for quadrat-based metrics.
+- `quadrat_sizes` (list): Quadrat sizes (in mesh coordinate units) for quadrat-based metrics.
 - `verbose` (bool): Print progress and status messages.
 - `save_results` (bool): Whether to save the results as CSV files.
 - `save_dir` (str): Directory to save the CSV files.

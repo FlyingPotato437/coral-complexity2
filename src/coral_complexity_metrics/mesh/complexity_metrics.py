@@ -536,7 +536,7 @@ class ComplexityMetrics:
                 
                 shading_result = shading.calculate(
                     light_dir=shading_light_dir,
-                    sample_size=min(shading_sample_size, 500000),
+                    sample_size=min(shading_sample_size, 100000),
                     verbose=False
                 )
                 
@@ -799,9 +799,11 @@ class ComplexityMetrics:
             try:
                 shading = Shading(cpu_percentage=25.0)
                 shading.mesh = filtered_mesh
+                # Ensure adequate samples for quadrat shading with physically-based algorithm
+                quadrat_sample_size = max(10000, min(25000, shading_sample_size // 4))
                 result = shading.calculate(
                     light_dir=shading_light_dir,
-                    sample_size=min(50000, shading_sample_size // 10),
+                    sample_size=quadrat_sample_size,
                     verbose=False
                 )
                 shaded_pct = result.get('shaded_percentage', np.nan)
