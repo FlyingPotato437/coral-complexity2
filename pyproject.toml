@@ -4,22 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coral-complexity-metrics"
-description = "Enhanced Coral Reef Complexity Metrics Package"
+description = "A Python package for calculating structural complexity metrics from 3D coral mesh files"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "EcoRRAP Development Team", email = "support@ecorap.org"},
-]
-maintainers = [
     {name = "Hannah White", email = "ha.white@aims.gov.au"},
 ]
 keywords = [
     "coral-reef",
     "complexity-metrics",
     "3d-analysis",
-    "marine-science",
-    "photogrammetry",
-    "mesh-processing"
+    "marine-science"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

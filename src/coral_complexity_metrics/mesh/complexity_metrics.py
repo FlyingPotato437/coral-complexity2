@@ -15,7 +15,6 @@ from ._metric import ComplexityMetric, SurfaceMetric, register_metric
 
 
 class SlopeMetric(ComplexityMetric):
-    """Surface slope calculation using local plane fitting."""
     
     @property
     def name(self) -> str:
@@ -23,43 +22,28 @@ class SlopeMetric(ComplexityMetric):
     
     @property
     def description(self) -> str:
-        return "Local surface slope angles calculated via plane fitting"
+        return "local surface slope angles calculated via plane fitting"
     
     def calculate(self, mesh_data: Dict[str, Any], 
                  neighborhood_radius: float = 0.1,
                  min_neighbors: int = 5) -> Dict[str, Any]:
-        """
-        Calculate local slope angles across the mesh surface.
         
-        Parameters:
-        mesh_data: Dictionary containing mesh data
-        neighborhood_radius: Radius for local neighborhood search
-        min_neighbors: Minimum number of neighbors required
-        
-        Returns:
-        Dictionary with slope statistics
-        """
         points = mesh_data.get('points')
         if points is None:
             return {'slope_mean': float('nan'), 'slope_std': float('nan')}
         
-        # Build KD-tree for efficient neighbor search
         tree = scipy.spatial.cKDTree(points)
         slopes = []
         
         for i, point in enumerate(points):
-            # Find neighbors within radius
             neighbor_indices = tree.query_ball_point(point, neighborhood_radius)
             
             if len(neighbor_indices) < min_neighbors:
                 continue
             
             neighbor_points = points[neighbor_indices]
-            
-            # Fit plane to local neighborhood
             normal = self._fit_plane_normal(neighbor_points)
             if normal is not None:
-                # Calculate slope angle (angle from vertical)
                 vertical = np.array([0, 0, 1])
                 cos_angle = np.abs(np.dot(normal, vertical))
                 slope_angle = np.degrees(np.arccos(np.clip(cos_angle, 0, 1)))
@@ -78,25 +62,21 @@ class SlopeMetric(ComplexityMetric):
         }
     
     def _fit_plane_normal(self, points: np.ndarray) -> Optional[np.ndarray]:
-        """Fit a plane to points and return the normal vector."""
         if len(points) < 3:
             return None
         
-        # Center the points
         centroid = np.mean(points, axis=0)
         centered = points - centroid
         
-        # SVD to find the normal
         try:
             _, _, V = np.linalg.svd(centered)
-            normal = V[-1]  # Last row of V
+            normal = V[-1]
             return normal / np.linalg.norm(normal)
         except np.linalg.LinAlgError:
             return None
 
 
 class PlaneOfBestFit(ComplexityMetric):
-    """Plane of best fit analysis for surface characterization."""
     
     @property
     def name(self) -> str:
@@ -104,28 +84,16 @@ class PlaneOfBestFit(ComplexityMetric):
     
     @property
     def description(self) -> str:
-        return "Global and local plane fitting analysis"
+        return "global and local plane fitting analysis"
     
     def calculate(self, mesh_data: Dict[str, Any], 
                  grid_size: int = 10) -> Dict[str, Any]:
-        """
-        Calculate plane of best fit metrics.
         
-        Parameters:
-        mesh_data: Dictionary containing mesh data
-        grid_size: Size of grid for local analysis
-        
-        Returns:
-        Dictionary with plane fitting results
-        """
         points = mesh_data.get('points')
         if points is None:
             return {'global_fit_error': float('nan')}
         
-        # Global plane of best fit
         global_normal, global_d, global_error = self._fit_global_plane(points)
-        
-        # Local plane fitting across grid
         local_errors = self._analyze_local_planes(points, grid_size)
         
         return {
@@ -137,52 +105,36 @@ class PlaneOfBestFit(ComplexityMetric):
         }
     
     def _fit_global_plane(self, points: np.ndarray) -> Tuple[Optional[np.ndarray], float, float]:
-        """Fit a single plane to all points."""
         if len(points) < 3:
             return None, 0, float('nan')
         
-        # Center points
         centroid = np.mean(points, axis=0)
         centered = points - centroid
         
-        # Fit plane using SVD
         try:
             _, s, V = np.linalg.svd(centered)
             normal = V[-1]
-            
-            # Calculate fitting error (sum of squared distances to plane)
             distances = np.abs(np.dot(centered, normal))
             error = np.sum(distances**2) / len(points)
-            
-            # Plane equation: normal • (x - centroid) = 0
             d = -np.dot(normal, centroid)
-            
             return normal, d, error
         except np.linalg.LinAlgError:
             return None, 0, float('nan')
     
     def _analyze_local_planes(self, points: np.ndarray, grid_size: int) -> List[float]:
-        """Analyze plane fitting across a grid."""
         if len(points) == 0:
             return []
         
-        # Create bounding box
         min_coords = np.min(points, axis=0)
         max_coords = np.max(points, axis=0)
-        
-        # Grid spacing
         spacing = (max_coords - min_coords) / grid_size
-        
         errors = []
         
         for i in range(grid_size):
             for j in range(grid_size):
                 for k in range(grid_size):
-                    # Define grid cell bounds
                     cell_min = min_coords + np.array([i, j, k]) * spacing
                     cell_max = cell_min + spacing
-                    
-                    # Find points in this cell
                     mask = np.all((points >= cell_min) & (points < cell_max), axis=1)
                     cell_points = points[mask]
                     
@@ -195,7 +147,6 @@ class PlaneOfBestFit(ComplexityMetric):
 
 
 class HeightRange(SurfaceMetric):
-    """Height range and vertical distribution analysis."""
     
     @property
     def name(self) -> str:
@@ -203,10 +154,9 @@ class HeightRange(SurfaceMetric):
     
     @property
     def description(self) -> str:
-        return "Vertical extent and distribution characteristics"
+        return "vertical extent and distribution characteristics"
     
     def calculate(self, mesh_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Calculate height range metrics."""
         points = mesh_data.get('points')
         if points is None:
             return {'height_range': float('nan')}
@@ -225,7 +175,6 @@ class HeightRange(SurfaceMetric):
         }
     
     def _calculate_skewness(self, data: np.ndarray) -> float:
-        """Calculate skewness of the distribution."""
         mean = np.mean(data)
         std = np.std(data)
         if std == 0:
@@ -233,7 +182,6 @@ class HeightRange(SurfaceMetric):
         return np.mean(((data - mean) / std) ** 3)
     
     def _calculate_kurtosis(self, data: np.ndarray) -> float:
-        """Calculate kurtosis of the distribution."""
         mean = np.mean(data)
         std = np.std(data)
         if std == 0:
@@ -242,7 +190,6 @@ class HeightRange(SurfaceMetric):
 
 
 class FractalDimensionBox(ComplexityMetric):
-    """Box-counting fractal dimension with multiple algorithms."""
     
     @property
     def name(self) -> str:
@@ -250,58 +197,40 @@ class FractalDimensionBox(ComplexityMetric):
     
     @property
     def description(self) -> str:
-        return "Box-counting fractal dimension using multiple scales"
+        return "box-counting fractal dimension using multiple scales"
     
     def calculate(self, mesh_data: Dict[str, Any], 
                  n_scales: int = 20,
                  scale_range: Tuple[float, float] = (1e-3, 1.0)) -> Dict[str, Any]:
-        """Calculate box-counting fractal dimension."""
         points = mesh_data.get('points')
         if points is None:
             return {'fractal_dimension': float('nan')}
         
-        # Generate logarithmically spaced scales
         min_scale, max_scale = scale_range
         scales = np.logspace(np.log10(min_scale), np.log10(max_scale), n_scales)
-        
-        # Calculate bounding box
         min_coords = np.min(points, axis=0)
         max_coords = np.max(points, axis=0)
         extent = max_coords - min_coords
-        
-        # Normalize scales by the largest extent
         max_extent = np.max(extent)
         scales = scales * max_extent
         
         counts = []
         
         for scale in scales:
-            # Count occupied boxes at this scale
             n_boxes = np.ceil(extent / scale).astype(int)
-            
-            # Assign points to boxes
             box_indices = np.floor((points - min_coords) / scale).astype(int)
             
-            # Ensure indices are within bounds
             for dim in range(3):
                 box_indices[:, dim] = np.clip(box_indices[:, dim], 0, n_boxes[dim] - 1)
             
-            # Count unique boxes
             unique_boxes = np.unique(box_indices, axis=0)
             counts.append(len(unique_boxes))
         
-        # Fit power law: N(r) = C * r^(-D)
-        # log(N) = log(C) - D * log(r)
         log_scales = np.log(scales)
         log_counts = np.log(counts)
-        
-        # Linear regression
         A = np.vstack([log_scales, np.ones(len(log_scales))]).T
         slope, intercept = np.linalg.lstsq(A, log_counts, rcond=None)[0]
-        
         fractal_dim = -slope
-        
-        # Calculate goodness of fit
         predicted = slope * log_scales + intercept
         r_squared = 1 - np.sum((log_counts - predicted)**2) / np.sum((log_counts - np.mean(log_counts))**2)
         
@@ -468,29 +397,13 @@ def register_complexity_metrics():
 register_complexity_metrics() 
 
 
-# AIMS-Compatible ComplexityMetrics Class for Backward Compatibility
 class ComplexityMetrics:
-    """
-    AIMS-compatible ComplexityMetrics class that provides the original interface
-    while leveraging enhanced EcoRRAP functionality under the hood.
-    
-    This class maintains backward compatibility with the original AIMS package
-    while providing access to enhanced features and improved performance.
-    """
     
     def __init__(self):
-        """Initialize the ComplexityMetrics class with default values."""
         self.mesh_file = None
         self.mesh = None
         
     def load_mesh(self, file, verbose=True):
-        """
-        Load a 3D mesh from the specified file.
-        
-        Parameters:
-        file (str): Path to the 3D model file.
-        verbose (bool): Whether to print loading information.
-        """
         import os
         import time
         
@@ -507,7 +420,6 @@ class ComplexityMetrics:
         start_time = time.time()
         
         try:
-            # Use PyVista for enhanced mesh loading
             import pyvista as pv
             self.mesh = pv.read(file)
             
@@ -525,21 +437,7 @@ class ComplexityMetrics:
     def calculate(self, mesh_file, shading_metrics=True, shading_light_dir=None, 
                  shading_sample_size=1000000, quadrat_metrics=False, 
                  quadrat_sizes=[1], verbose=True):
-        """
-        Calculate complexity measures of the mesh using enhanced EcoRRAP functionality.
         
-        Parameters:
-        mesh_file (str): Path to the 3D model file.
-        shading_metrics (bool): Whether to apply shading to the mesh.
-        shading_light_dir (np.array): Direction of the light source for shading.
-        shading_sample_size (int): Number of samples for shading calculation.
-        quadrat_metrics (bool): Whether to calculate quadrat metrics.
-        quadrat_sizes (list): List of quadrat sizes to use for quadrat metrics.
-        verbose (bool): Whether to print progress messages.
-        
-        Returns:
-        dict: Dictionary containing various complexity measures of the mesh.
-        """
         import os
         import numpy as np
         from .geometric_measures import GeometricMeasures
@@ -551,7 +449,6 @@ class ComplexityMetrics:
                 print(f"3D model file not found: {mesh_file}")
             return None
             
-        # Load mesh if not already loaded
         if self.mesh is None or self.mesh_file != mesh_file:
             self.load_mesh(mesh_file, verbose=verbose)
             
@@ -561,15 +458,10 @@ class ComplexityMetrics:
         if verbose:
             print("Calculating complexity measures for mesh...")
             
-        # Calculate basic geometric measures directly
         try:
-            # Basic mesh properties
             surface_area = float(self.mesh.area) if hasattr(self.mesh, 'area') else np.nan
-            
-            # Check if mesh is watertight
             is_watertight = self.mesh.is_manifold if hasattr(self.mesh, 'is_manifold') else False
             
-            # Volume calculation (only for watertight meshes)
             volume = np.nan
             if is_watertight:
                 try:
@@ -578,31 +470,26 @@ class ComplexityMetrics:
                     volume = np.nan
                     is_watertight = False
             
-            # Convex hull calculations
             try:
                 convex_hull = self.mesh.convex_hull()
                 cvh_volume = float(convex_hull.volume) if hasattr(convex_hull, 'volume') else np.nan
             except:
                 cvh_volume = np.nan
             
-            # 2D projected area calculation
             points = self.mesh.points
             if len(points) > 0:
-                # Project to XY plane and calculate area
-                points_2d = points[:, :2]  # Take only X and Y coordinates
+                points_2d = points[:, :2]
                 try:
                     from scipy.spatial import ConvexHull
                     hull_2d = ConvexHull(points_2d)
-                    projected_area = hull_2d.volume  # In 2D, volume is area
+                    projected_area = hull_2d.volume
                 except:
-                    # Fallback: bounding box area
                     min_xy = np.min(points_2d, axis=0)
                     max_xy = np.max(points_2d, axis=0)
                     projected_area = (max_xy[0] - min_xy[0]) * (max_xy[1] - min_xy[1])
             else:
                 projected_area = np.nan
             
-            # Calculate derived metrics
             asr = cvh_volume - volume if not np.isnan(cvh_volume) and not np.isnan(volume) else np.nan
             proportion_occupied = volume / cvh_volume if not np.isnan(cvh_volume) and not np.isnan(volume) and cvh_volume > 0 else np.nan
             ssf = asr / surface_area if not np.isnan(asr) and not np.isnan(surface_area) and surface_area > 0 else np.nan
@@ -623,7 +510,6 @@ class ComplexityMetrics:
                 print(f"Error in geometric calculations: {e}")
             geom_results = {}
         
-        # Prepare basic plot metrics in AIMS format
         plot_metrics = {
             'mesh_file': mesh_file,
             'is_watertight': geom_results.get('is_watertight', False),
@@ -639,22 +525,19 @@ class ComplexityMetrics:
             'surface_rugosity': geom_results.get('surface_area', np.nan) / geom_results.get('projected_area', 1) if geom_results.get('projected_area', 0) > 0 else np.nan,
         }
         
-        # Enhanced shading calculations (same interface, better performance)
         if shading_metrics:
             try:
-                # Use default light direction if not provided
                 if shading_light_dir is None:
                     shading_light_dir = np.array([0, 0, -1])
                 
-                # Enhanced BVH shading - faster than original AIMS
-                shading = Shading(cpu_percentage=50.0)  # Reduce CPU to speed up
+                shading = Shading(cpu_percentage=50.0)
                 shading.mesh = self.mesh
                 shading.mesh_file = mesh_file
                 
                 shading_result = shading.calculate(
                     light_dir=shading_light_dir,
-                    sample_size=min(shading_sample_size, 500000),  # Cap sample size for speed
-                    verbose=False  # Reduce verbosity for speed
+                    sample_size=min(shading_sample_size, 500000),
+                    verbose=False
                 )
                 
                 plot_metrics['shaded_percentage'] = shading_result.get('shaded_percentage', np.nan)
@@ -668,17 +551,14 @@ class ComplexityMetrics:
         
         result = {'plot_metrics': plot_metrics}
         
-        # Enhanced quadrat metrics (same AIMS interface, faster processing)
         if quadrat_metrics:
             try:
                 quadrat_results = []
                 
                 for size in quadrat_sizes:
-                    # Enhanced quadrat processing - same output format as AIMS
                     quadrats = self._generate_quadrats(size)
                     
                     for quadrat in quadrats:
-                        # Filter mesh to quadrat and calculate metrics
                         filtered_mesh = self._filter_mesh_to_quadrat(quadrat)
                         if len(filtered_mesh.points) > 0:
                             quad_metrics = self._calculate_quadrat_metrics(
@@ -786,32 +666,26 @@ class ComplexityMetrics:
         return results
     
     def _generate_quadrats(self, quadrat_size):
-        """Generate quadrats using AIMS algorithm but with optimized data structures."""
         import numpy as np
         
-        # Get mesh bounds
         points = self.mesh.points
         x_min, x_max = float(np.min(points[:, 0])), float(np.max(points[:, 0]))
         y_min, y_max = float(np.min(points[:, 1])), float(np.max(points[:, 1]))
         
-        # Calculate centroid of the bounding box
         centroid_x = (x_min + x_max) / 2
         centroid_y = (y_min + y_max) / 2
         
-        # Calculate distances from centroid to each edge
         dist_x_pos = x_max - centroid_x
         dist_x_neg = centroid_x - x_min
         dist_y_pos = y_max - centroid_y
         dist_y_neg = centroid_y - y_min
         
-        # Number of quadrats from centroid to each edge
         num_x_pos = int(np.ceil(dist_x_pos / quadrat_size))
         num_x_neg = int(np.ceil(dist_x_neg / quadrat_size))
         num_y_pos = int(np.ceil(dist_y_pos / quadrat_size))
         num_y_neg = int(np.ceil(dist_y_neg / quadrat_size))
         
         quadrats = []
-        # Loop over all possible i (x) and j (y) offsets from centroid
         for i in range(-num_x_neg, num_x_pos + 1):
             for j in range(-num_y_neg, num_y_pos + 1):
                 x_center = centroid_x + i * quadrat_size
@@ -821,12 +695,10 @@ class ComplexityMetrics:
                 y_quad_min = y_center - quadrat_size / 2
                 y_quad_max = y_center + quadrat_size / 2
                 
-                # Only include quadrats where the centroid is within the bounding box
                 if (x_center < x_min or x_center > x_max or
                         y_center < y_min or y_center > y_max):
                     continue
                 
-                # Adjust the bounds to be within the bounding box
                 x_quad_min = max(x_quad_min, x_min)
                 x_quad_max = min(x_quad_max, x_max)
                 y_quad_min = max(y_quad_min, y_min)
@@ -847,15 +719,12 @@ class ComplexityMetrics:
         return quadrats
     
     def _filter_mesh_to_quadrat(self, quadrat):
-        """Filter mesh to quadrat using optimized face filtering."""
         import numpy as np
         import pyvista as pv
         
-        # Convert PyVista mesh to face-based filtering
         points = self.mesh.points
         faces = self.mesh.faces
         
-        # Extract triangular faces
         triangular_faces = []
         i = 0
         while i < len(faces):
@@ -869,11 +738,8 @@ class ComplexityMetrics:
             return pv.PolyData()
         
         triangular_faces = np.array(triangular_faces)
-        
-        # Calculate face centroids efficiently
         face_centroids = np.mean(points[triangular_faces], axis=1)
         
-        # Filter faces within quadrat bounds
         mask = ((face_centroids[:, 0] >= quadrat["x_min"]) & 
                 (face_centroids[:, 0] <= quadrat["x_max"]) &
                 (face_centroids[:, 1] >= quadrat["y_min"]) & 
@@ -884,8 +750,6 @@ class ComplexityMetrics:
         if len(filtered_faces) == 0:
             return pv.PolyData()
         
-        # Create new mesh with filtered faces
-        # Convert back to PyVista format
         pv_faces = []
         for face in filtered_faces:
             pv_faces.extend([3] + face.tolist())
@@ -894,32 +758,25 @@ class ComplexityMetrics:
     
     def _calculate_quadrat_metrics(self, mesh_file, filtered_mesh, quadrat, 
                                  shading_metrics, shading_light_dir, shading_sample_size):
-        """Calculate metrics for a single quadrat using enhanced methods."""
         import numpy as np
         
-        # Basic metrics
         sf_area = float(filtered_mesh.area) if hasattr(filtered_mesh, 'area') else np.nan
         
-        # 2D projected area
         points = filtered_mesh.points
         if len(points) > 0:
             from scipy.spatial import ConvexHull
             try:
                 points_2d = points[:, :2]
                 hull_2d = ConvexHull(points_2d)
-                sf_area_2d = float(hull_2d.volume)  # In 2D, volume is area
+                sf_area_2d = float(hull_2d.volume)
             except:
                 sf_area_2d = np.nan
         else:
             sf_area_2d = np.nan
         
-        # Surface rugosity
         rugosity = float(sf_area / sf_area_2d) if sf_area_2d > 0 else np.nan
-        
-        # Watertight check
         watertight = filtered_mesh.is_manifold if hasattr(filtered_mesh, 'is_manifold') else False
         
-        # Volume calculations  
         if len(filtered_mesh.points) < 4:
             cvh_vol = np.nan
             vol = np.nan
@@ -931,23 +788,20 @@ class ComplexityMetrics:
                 cvh_vol = np.nan
                 vol = np.nan
         
-        # Derived metrics
         asr = cvh_vol - vol if not np.isnan(cvh_vol) and not np.isnan(vol) else np.nan
         prop_occ = vol / cvh_vol if not np.isnan(cvh_vol) and not np.isnan(vol) and cvh_vol > 0 else np.nan
         ssf = asr / sf_area if not np.isnan(asr) and not np.isnan(sf_area) and sf_area > 0 else np.nan
         
-        # Fast shading calculation for quadrat
         shaded_pct = np.nan
         illuminated_pct = np.nan
         
         if shading_metrics and len(filtered_mesh.points) > 0:
             try:
-                # Quick shading calculation
-                shading = Shading(cpu_percentage=25.0)  # Lower CPU for quadrats
+                shading = Shading(cpu_percentage=25.0)
                 shading.mesh = filtered_mesh
                 result = shading.calculate(
                     light_dir=shading_light_dir,
-                    sample_size=min(50000, shading_sample_size // 10),  # Much smaller sample for speed
+                    sample_size=min(50000, shading_sample_size // 10),
                     verbose=False
                 )
                 shaded_pct = result.get('shaded_percentage', np.nan)
@@ -955,7 +809,6 @@ class ComplexityMetrics:
             except:
                 pass
         
-        # Return AIMS-compatible format
         return {
             'mesh_file': mesh_file,
             'quadrat_size': quadrat['size'],
