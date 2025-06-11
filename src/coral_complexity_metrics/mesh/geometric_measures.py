@@ -56,7 +56,7 @@ class GeometricMeasures:
 
         # remove isolated pieces
         self.mesh.meshing_remove_connected_component_by_diameter(
-            mincomponentdiag=pymeshlab.Percentage(1), removeunref=True)
+            mincomponentdiag=pymeshlab.PercentageValue(1), removeunref=True)
 
         # close holes
         self.mesh.meshing_close_holes(

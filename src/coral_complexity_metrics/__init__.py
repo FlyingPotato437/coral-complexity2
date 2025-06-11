@@ -154,13 +154,15 @@ def validate_and_repair_mesh(*args, **kwargs):
     validator = mesh.MeshValidator()
     return validator.validate_and_repair(*args, **kwargs)
 
-# Legacy compatibility
+# Legacy compatibility and test imports
 try:
-    from .mesh.quadrat_metrics import quadrat_metrics_on_mesh
+    from .mesh.quadrat_metrics import QuadratMetrics
     from .mesh.complexity_metrics import *
-    from .mesh.geometric_measures import *
-except ImportError:
-    pass  # These will be handled by the placeholder functions
+    from .mesh.geometric_measures import GeometricMeasures
+    _TEST_CLASSES_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import test classes: {e}")
+    _TEST_CLASSES_AVAILABLE = False
 
 # Export main functionality
 __all__ = [
@@ -173,4 +175,7 @@ __all__ = [
     # Convenience functions
     'list_available_metrics', 'get_available_metrics',
     'process_mesh_with_shapefile', 'validate_and_repair_mesh',
+    
+    # Test classes
+    'GeometricMeasures', 'QuadratMetrics',
 ]
